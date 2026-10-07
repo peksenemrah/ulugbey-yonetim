@@ -1,5 +1,5 @@
 // Uluğbey Yönetim — service worker (uygulama kabuğunu önbelleğe alır, çevrimdışı açılış sağlar)
-const VERSION = 'uy-v1';
+const VERSION = 'uy-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 const CDN = ['www.gstatic.com', 'cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
