@@ -451,8 +451,9 @@ details.sub-card[open] summary{margin-bottom:12px}
 <script>
 (function(){
 const $=s=>document.querySelector(s);
-const SEC=['A','B','C','D','E','F','G','H','I','İ','J','K'];
-const GRADES=[{g:'ANA',n:6},{g:'1',n:8},{g:'2',n:8},{g:'3',n:12},{g:'4',n:11}];
+// Okulun gerçek şube listesi (e-Okul Sınıf-Şube Öğrenci Sayıları, Ekim 2026). İşitme engelliler sınıfları dahil edilmedi.
+const SCHOOL_SECS={ANA:['A','B','C','D','E','F'],'1':['A','B','C','D','E','F','G','H'],'2':['A','B','C','D','E','F','G','H','I'],'3':['A','B','C','D','E','F','G','H','I','K'],'4':['A','B','C','D','E','F','G','H','I']};
+const CLASSES_V=2;
 const GNAME={ANA:'Anasınıfı','1':'1. Sınıflar','2':'2. Sınıflar','3':'3. Sınıflar','4':'4. Sınıflar'};
 const GORD={ANA:0,'1':1,'2':2,'3':3,'4':4};
 const today=()=>new Date().toLocaleDateString('sv-SE');
@@ -468,7 +469,7 @@ const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k
 const uid=p=>p+'-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const schoolYear=d=>{if(!d)return'';const y=+d.slice(0,4),m=+d.slice(5,7);return m>=9?`${y}-${y+1}`:`${y-1}-${y}`};
 const slug=s=>(s||'').toLocaleLowerCase('tr-TR').replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-function defaultClasses(){const out=[];for(const G of GRADES)SEC.slice(0,G.n).forEach((s,i)=>out.push({id:'c-'+G.g.toLowerCase()+'-'+String(i+1).padStart(2,'0'),grade:G.g,section:s,label:mkLabel(G.g,s),order:i+1}));return out}
+function defaultClasses(){const out=[];for(const g of ['ANA','1','2','3','4'])SCHOOL_SECS[g].forEach((s,i)=>out.push({id:'c-'+g.toLowerCase()+'-'+s.toLowerCase(),grade:g,section:s,label:mkLabel(g,s),order:i+1}));return out}
 function sortClasses(a){return (a||[]).slice().sort((x,y)=>(GORD[x.grade]??9)-(GORD[y.grade]??9)||(x.order??0)-(y.order??0)||lab(x).localeCompare(lab(y),'tr'))}
 
 const S={db:null,school:{schoolName:'Uluğbey İlkokulu'},tpl:null,logo:null,logoImg:null,events:[],eid:null,sales:[],salesLoaded:false,unsubSales:null,
@@ -1004,7 +1005,7 @@ async function seedIfEmpty(db){
   try{const m=await db.doc('cfg/main').get({source:'server'});if(m.exists)return;
     const ev=await db.collection('events').limit(1).get({source:'server'});if(!ev.empty)return;
     const cls=defaultClasses();const b=db.batch();
-    b.set(db.doc('cfg/main'),{schoolName:'Uluğbey İlkokulu'});b.set(db.doc('cfg/sablon'),{classes:cls,at:Date.now()});
+    b.set(db.doc('cfg/main'),{schoolName:'Uluğbey İlkokulu',classesV:CLASSES_V});b.set(db.doc('cfg/sablon'),{classes:cls,at:Date.now()});
     b.set(db.doc('events/ev-uzay-cadiri-2026'),{name:'Uzay Çadırı Etkinliği',date:'2026-10-07',price:0,firmPer:0,schoolPer:0,status:'active',createdAt:Date.now(),classes:cls});
     await b.commit();
   }catch(e){}
@@ -1020,7 +1021,21 @@ function startData(){
     const id=pickDefault();if(id!==S.eid||!S.unsubSales)selectEvent(id,false);else renderAll();
     if(pendingSelect&&id===pendingSelect)pendingSelect=null;
     if(S.tab==='etk')loadEventTotals()},err));
-  seedIfEmpty(db);
+  seedIfEmpty(db).then(()=>migrateClasses(db));
+}
+// Tek seferlik: şube listesini okulun gerçek listesine çeker. Girişi olan sınıflara dokunmaz.
+async function migrateClasses(db){
+  try{const m=await db.doc('cfg/main').get({source:'server'});if(!m.exists||(m.data().classesV||0)>=CLASSES_V)return;
+    const want=defaultClasses();const key=c=>c.grade+'|'+c.section;const wantKeys=new Set(want.map(key));
+    await db.doc('cfg/sablon').set({classes:want,at:Date.now()});
+    const evs=await db.collection('events').get({source:'server'});
+    for(const d of evs.docs){const e=d.data();if(e.status==='archived')continue;
+      const sales=await db.collection('events/'+d.id+'/sales').get({source:'server'});const used=new Set(sales.docs.map(x=>x.data().classId));
+      const kept=(e.classes||[]).filter(c=>wantKeys.has(key(c))||used.has(c.id));const have=new Set(kept.map(key));
+      for(const w of want)if(!have.has(key(w)))kept.push({...w});
+      await d.ref.update({classes:kept})}
+    await db.doc('cfg/main').update({classesV:CLASSES_V});
+  }catch(e){}
 }
 addEventListener('online',()=>{if(S.db)setSync(true,'Canlı')});
 addEventListener('offline',()=>setSync(false,'Çevrimdışı'));
