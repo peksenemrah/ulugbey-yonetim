@@ -156,7 +156,7 @@ details.sub-card[open] summary{margin-bottom:12px}
 .login{position:fixed;inset:0;z-index:50;background:var(--hdr);color:var(--hdr-ink);display:flex;align-items:center;justify-content:center;padding:24px 16px;overflow:auto;
   background-image:radial-gradient(1.4px 1.4px at 12% 20%,var(--hdr-star),transparent 60%),radial-gradient(1px 1px at 30% 80%,var(--hdr-star),transparent 60%),radial-gradient(1.6px 1.6px at 70% 15%,var(--hdr-star),transparent 60%),radial-gradient(1px 1px at 85% 60%,var(--hdr-star),transparent 60%),radial-gradient(1.2px 1.2px at 50% 45%,var(--hdr-star),transparent 60%)}
 .login-box{width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;text-align:center}
-.login-box img.app{width:84px;height:84px;border-radius:22px;margin:0 auto;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.login-box img.app{width:112px;height:112px;border-radius:50%;margin:0 auto;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.4)}
 .login-box h1{font-family:var(--f-display);font-weight:700;font-size:24px;margin:6px 0 0}
 .login-box p{margin:0;color:var(--hdr-muted);font-size:14px}
 .login-box input{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#fff;text-align:center;font-size:22px;letter-spacing:.3em;padding:14px}
@@ -181,7 +181,7 @@ details.sub-card[open] summary{margin-bottom:12px}
 <body>
 <div class="login" id="login" hidden>
   <form class="login-box" id="loginForm" autocomplete="off">
-    <img class="app" src="icons/icon-192.png" alt="">
+    <img class="app" src="icons/okul-logo.png" alt="Uluğbey İlkokulu logosu">
     <h1>Uluğbey Yönetim</h1>
     <p id="loginSub">Devam etmek için PIN kodunu girin.</p>
     <input id="pin1" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN kodu" aria-label="PIN kodu">
@@ -391,10 +391,10 @@ details.sub-card[open] summary{margin-bottom:12px}
         <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
           <label class="btn ghost sm" for="logoFile" style="cursor:pointer">Logo yükle</label>
           <input id="logoFile" type="file" accept="image/*" hidden>
-          <button class="btn warn sm" type="button" id="logoDel" hidden>Logoyu kaldır</button>
+          <button class="btn warn sm" type="button" id="logoDel" hidden>Okul logosuna dön</button>
         </div>
       </div>
-      <p class="hint" style="margin-top:10px">Logo biletlerde ve PDF raporlarında kullanılır. Tüm telefonlarda ortak görünür.</p>
+      <p class="hint" style="margin-top:10px">Okul logosu biletlerde ve PDF raporlarında kendiliğinden kullanılır. Başka bir logo yüklerseniz tüm telefonlarda onu kullanır; kaldırınca okul logosuna döner.</p>
     </div>
     <div class="card">
       <details class="sub-card">
@@ -472,7 +472,8 @@ const slug=s=>(s||'').toLocaleLowerCase('tr-TR').replace(/ı/g,'i').replace(/ğ/
 function defaultClasses(){const out=[];for(const g of ['ANA','1','2','3','4'])SCHOOL_SECS[g].forEach((s,i)=>out.push({id:'c-'+g.toLowerCase()+'-'+s.toLowerCase(),grade:g,section:s,label:mkLabel(g,s),order:i+1}));return out}
 function sortClasses(a){return (a||[]).slice().sort((x,y)=>(GORD[x.grade]??9)-(GORD[y.grade]??9)||(x.order??0)-(y.order??0)||lab(x).localeCompare(lab(y),'tr'))}
 
-const S={db:null,school:{schoolName:'Uluğbey İlkokulu'},tpl:null,logo:null,logoImg:null,events:[],eid:null,sales:[],salesLoaded:false,unsubSales:null,
+const DEFAULT_LOGO='icons/okul-logo.png';
+const S={db:null,school:{schoolName:'Uluğbey İlkokulu'},tpl:null,logo:DEFAULT_LOGO,logoCustom:false,logoImg:null,events:[],eid:null,sales:[],salesLoaded:false,unsubSales:null,
   loaded:{events:false},tab:'giris',tMode:'blank',entry:'paid',rMode:'event',cache:{}};
 const ev=()=>S.events.find(e=>e.id===S.eid)||null;
 const ro=()=>{const e=ev();return !e||e.status==='archived'};
@@ -513,7 +514,7 @@ function renderHeader(){
   const h=$('#hdrLogo');
   if(S.logo){if(!h.querySelector('img'))h.innerHTML='<img alt="Okul logosu">';h.querySelector('img').src=S.logo}
   const lp=$('#logoPrev');
-  if(S.logo){lp.innerHTML='<img alt="Okul logosu">';lp.querySelector('img').src=S.logo;$('#logoDel').hidden=false}
+  if(S.logo){lp.innerHTML='<img alt="Okul logosu">';lp.querySelector('img').src=S.logo;$('#logoDel').hidden=!S.logoCustom}
   else{lp.textContent='Logo yok';$('#logoDel').hidden=true}
   if(document.activeElement!==$('#cSchool'))$('#cSchool').value=S.school.schoolName||'';
   // read-only controls
@@ -857,7 +858,6 @@ function renderTicketInfo(){
   const list=ticketList();const pages=Math.ceil(list.length/36);
   let t=`${int(list.length)} bilet · ${pages} A4 sayfa (sayfa başına 36 bilet, 4×9). Kesme çizgileri kesikli.`;
   if(S.tMode==='class'){if(!list.length)t='Henüz giriş yok. Ücretli ve kontenjan girişleri yapıldıkça sınıf adlı biletler üretilir.';else t+=' Kontenjan biletlerinde sınıf adı sarı yazılır.'}
-  if(!S.logo)t+=' Okul logosu henüz yüklenmedi: sağ üstteki ayarlardan yükleyin.';
   $('#tInfo').textContent=t;$('#tBlankOpts').hidden=S.tMode!=='blank';
 }
 let prevBusy=false;
@@ -1014,7 +1014,7 @@ function startData(){
   if(S.db)return;const db=fs;S.db=db;setSync(navigator.onLine,navigator.onLine?'Canlı':'Çevrimdışı');banner('');
   const err=e=>{if(e&&e.code==='permission-denied'){banner('Bu hesabın verilere erişimi yok. Çıkış yapıp doğru PIN ile girin.')}else{setSync(false,'Bağlantı koptu')}};
   unsubs.push(db.doc('cfg/main').onSnapshot(s=>{S.school={schoolName:'Uluğbey İlkokulu',...(s.exists?s.data():{})};renderAll()},err));
-  unsubs.push(db.doc('cfg/logo').onSnapshot(s=>{S.logo=s.exists?(s.data().dataUrl||null):null;renderAll()},err));
+  unsubs.push(db.doc('cfg/logo').onSnapshot(s=>{const u=s.exists?(s.data().dataUrl||null):null;S.logoCustom=!!u;S.logo=u||DEFAULT_LOGO;renderAll()},err));
   unsubs.push(db.doc('cfg/sablon').onSnapshot(s=>{S.tpl=s.exists?(s.data().classes||null):null;renderTpl()},err));
   unsubs.push(db.collection('events').limit(500).onSnapshot(q=>{S.events=q.docs.map(d=>({id:d.id,...d.data()}));S.loaded.events=true;
     for(const e of S.events)if(e.id!==S.eid)delete totalsCache[e.id];
