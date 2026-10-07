@@ -166,6 +166,18 @@ details.sub-card[open] summary{margin-bottom:12px}
 .login-box .lnk{background:none;border:0;color:var(--hdr-muted);font:inherit;font-size:13.5px;text-decoration:underline;cursor:pointer;padding:6px}
 .install-card{display:flex;gap:12px;align-items:center}
 .install-promo{border-color:var(--accent);background:var(--accent-soft)}
+.up-banner{display:flex;gap:12px;align-items:center;text-align:left;font:inherit;color:var(--ink);cursor:pointer;width:100%}
+.up-banner.soon{border-color:var(--brass);background:var(--brass-soft)}
+.up-date{flex:none;width:52px;text-align:center;border-radius:10px;background:var(--accent-soft);color:var(--accent);padding:6px 0;line-height:1.1}
+.up-date b{display:block;font-family:var(--f-display);font-weight:500;font-size:20px}
+.up-date span{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.soon .up-date,.uprow.soon .up-date{background:var(--brass);color:var(--surface)}
+.uprow{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+.uprow:first-child{border-top:0}
+.uprow .main{flex:1;min-width:0}
+.uprow .t{font-weight:700;overflow-wrap:anywhere}
+.uprow .m{font-size:12.5px;color:var(--muted)}
+.uprow .left{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
 .login-box .login-install{background:rgba(255,255,255,.1);color:#fff;margin-top:6px}
 .sheet-bg{position:fixed;inset:0;z-index:60;background:rgba(5,8,22,.55);display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--surface);color:var(--ink);width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;max-height:90%;overflow:auto}
@@ -227,6 +239,7 @@ details.sub-card[open] summary{margin-bottom:12px}
       </div>
       <button class="btn block" type="button" data-install style="margin-top:12px">Ana ekrana ekle</button>
     </div>
+    <button class="card up-banner" type="button" id="upBanner" hidden></button>
     <div class="tiles" id="girisTiles"></div>
     <form class="card" id="saleForm" autocomplete="off">
       <div class="seg paidfree" id="entryMode" style="margin-bottom:14px"><button type="button" data-m="paid" class="on">Ücretli öğrenci</button><button type="button" data-m="free">Kontenjan (ücretsiz)</button></div>
@@ -328,16 +341,27 @@ details.sub-card[open] summary{margin-bottom:12px}
 
   <!-- ETKİNLİKLER -->
   <section class="view" id="v-etk" hidden>
+    <div class="card" id="upCard">
+      <div class="grade-h"><h3>Yaklaşan etkinlikler</h3><span id="upCount"></span></div>
+      <div id="upList"></div>
+      <button class="btn ghost block" type="button" id="icsBtn" style="margin-top:12px">Telefon takvimine ekle</button>
+      <p class="hint" style="margin-top:8px">Takvime eklenen her etkinlik, tanıtım gününden bir gün önce saat 09:00'da telefonunuza hatırlatma gönderir.</p>
+    </div>
     <form class="card" id="evForm" autocomplete="off">
       <h2>Seçili etkinlik</h2>
       <div class="stack">
         <label class="f">Etkinlik adı<input id="eName" type="text"></label>
-        <label class="f">Etkinlik tarihi<input id="eDate" type="date"></label>
+        <div class="row">
+          <label class="f">Tanıtım tarihi<input id="ePromo" type="date"></label>
+          <label class="f">Etkinlik tarihi<input id="eDate" type="date"></label>
+        </div>
         <label class="f">Etkinlik ücreti (öğrenci başı ₺)<input id="ePrice" type="text" inputmode="decimal" placeholder="Örn. 150"></label>
         <div class="row">
           <label class="f">Firma payı (öğrenci başı ₺)<input id="eFirm" type="text" inputmode="decimal" placeholder="Örn. 120"></label>
           <label class="f">Okul payı (öğrenci başı ₺)<input id="eSchool" type="text" inputmode="decimal" placeholder="Örn. 30"></label>
         </div>
+        <label class="f">Firma yetkilisi<input id="eContact" type="text" placeholder="Örn. Cahit Bey"></label>
+        <label class="f">Not<input id="eNote" type="text" placeholder="Örn. +5000 TL okula katkı"></label>
         <p class="hint" id="eHint"></p>
         <button class="btn block" type="submit" id="eSave">Etkinliği kaydet</button>
         <div class="row">
@@ -351,12 +375,17 @@ details.sub-card[open] summary{margin-bottom:12px}
         <summary>Yeni etkinlik ekle</summary>
         <form class="stack" id="newEvForm" autocomplete="off">
           <label class="f">Etkinlik adı<input id="nName" type="text" placeholder="Örn. Planetaryum Gezisi" required></label>
-          <label class="f">Etkinlik tarihi<input id="nDate" type="date" required></label>
+          <div class="row">
+            <label class="f">Tanıtım tarihi<input id="nPromo" type="date"></label>
+            <label class="f">Etkinlik tarihi<input id="nDate" type="date" required></label>
+          </div>
           <label class="f">Etkinlik ücreti (öğrenci başı ₺)<input id="nPrice" type="text" inputmode="decimal" placeholder="Örn. 150"></label>
           <div class="row">
             <label class="f">Firma payı (₺)<input id="nFirm" type="text" inputmode="decimal"></label>
             <label class="f">Okul payı (₺)<input id="nSchool" type="text" inputmode="decimal"></label>
           </div>
+          <label class="f">Firma yetkilisi<input id="nContact" type="text"></label>
+          <label class="f">Not<input id="nNote" type="text"></label>
           <p class="hint">Sınıflar okulun şube listesinden kopyalanır. Yeni etkinlik bu telefonda hemen açılır.</p>
           <button class="btn block" type="submit">Etkinliği oluştur</button>
         </form>
@@ -503,7 +532,7 @@ $('#gearBtn').onclick=()=>setTab('ayar');
 $('#evChip').onclick=()=>setTab('etk');
 
 /* ---------- render ---------- */
-function renderAll(){renderHeader();renderGiris();renderClasses();renderReport();renderTpl();renderEvents();fillEv();
+function renderAll(){renderHeader();renderUpcoming();renderGiris();renderClasses();renderReport();renderTpl();renderEvents();fillEv();
   if(S.tab==='bilet')drawPreview();else renderTicketInfo();
   if(S.tab==='rapor'&&S.rMode==='year')renderYear();}
 function renderHeader(){
@@ -659,17 +688,17 @@ $('#yYear').addEventListener('change',renderYear);
 
 /* ---------- events tab ---------- */
 let evDirty=false;
-function fillEv(){const e=ev();const f=['#eName','#eDate','#ePrice','#eFirm','#eSchool'];
+function fillEv(){const e=ev();const f=['#eName','#eDate','#ePromo','#ePrice','#eFirm','#eSchool','#eContact','#eNote'];
   if(!e){f.forEach(id=>{$(id).value='';$(id).disabled=true});['#eSave','#eArchive','#eDelete'].forEach(id=>$(id).disabled=true);$('#eHint').textContent='Henüz etkinlik yok. Aşağıdan yeni etkinlik ekleyin.';return}
   const r=e.status==='archived';
-  if(!evDirty){$('#eName').value=e.name||'';$('#eDate').value=e.date||'';$('#ePrice').value=e.price||'';$('#eFirm').value=e.firmPer||'';$('#eSchool').value=e.schoolPer||''}
+  if(!evDirty){$('#eName').value=e.name||'';$('#eDate').value=e.date||'';$('#ePrice').value=e.price||'';$('#eFirm').value=e.firmPer||'';$('#eSchool').value=e.schoolPer||'';$('#ePromo').value=e.promoDate||'';$('#eContact').value=e.contact||'';$('#eNote').value=e.note||''}
   f.forEach(id=>$(id).disabled=r);$('#eSave').disabled=r;$('#eArchive').disabled=false;$('#eDelete').disabled=false;
   $('#eArchive').textContent=r?'Arşivden çıkar':'Arşive al';$('#eArchive').className='btn '+(r?'ghost':'brass');
   evHint()}
 function evHint(){const p=pnum($('#ePrice').value),f=pnum($('#eFirm').value),s=pnum($('#eSchool').value);const h=$('#eHint');
   if(p&&(f||s)&&Math.abs(f+s-p)>0.005){h.textContent=`Firma + okul payı (${money(f+s)}) ücretten (${money(p)}) farklı.`;h.className='hint bad'}
   else{h.textContent=p?`Ücretli öğrenci başına: firma ${money(f)}, okul ${money(s)}. Kontenjan paya yansımaz.`:'Ücreti girin; payları öğrenci başına tutar olarak yazın.';h.className='hint'}}
-['#eName','#eDate','#ePrice','#eFirm','#eSchool'].forEach(id=>$(id).addEventListener('input',()=>{evDirty=true;evHint()}));
+['#eName','#eDate','#ePromo','#ePrice','#eFirm','#eSchool','#eContact','#eNote'].forEach(id=>$(id).addEventListener('input',()=>{evDirty=true;evHint()}));
 const totalsCache={};
 async function loadEventTotals(){for(const e of S.events){if(e.id===S.eid)continue;if(totalsCache[e.id])continue;
   totalsCache[e.id]=agg(await salesOf(e.id),e,'all');renderEvents()}}
@@ -681,7 +710,7 @@ function renderEvents(){
   if(!sorted.length){box.innerHTML='<div class="empty"><b>Henüz etkinlik yok</b>Yukarıdan ilk etkinliği ekleyin.</div>';return}
   const row=e=>{const cur=e.id===S.eid;const a=cur?agg(S.sales,e,'all'):totalsCache[e.id];
     return `<div class="evrow${cur?' cur':''}"><div class="main"><div class="t">${esc(e.name)}</div>
-      <div class="m">${fmtD(e.date)}${a?` · ${int(a.paid)} ücretli · ${int(a.free)} kontenjan · ${money(a.collected)}`:''}</div></div>
+      <div class="m">${e.promoDate?'Tanıtım '+fmtD(e.promoDate)+' · ':''}${fmtD(e.date)}${a?` · ${int(a.paid)} ücretli · ${int(a.free)} kontenjan · ${money(a.collected)}`:''}</div></div>
       ${e.status==='archived'?'<span class="pill arc">Arşiv</span>':''}
       ${cur?'<span class="pill">Açık</span>':`<button class="btn ghost sm" type="button" data-open="${esc(e.id)}">Aç</button>`}</div>`};
   const act=sorted.filter(e=>e.status!=='archived'),arc=sorted.filter(e=>e.status==='archived');
@@ -689,6 +718,77 @@ function renderEvents(){
     (arc.length?`<div class="grade-h" style="margin-top:14px"><h3>Arşiv</h3><span>${arc.length} etkinlik</span></div>`+arc.map(row).join(''):'');
 }
 $('#evList').addEventListener('click',e=>{const b=e.target.closest('[data-open]');if(b)selectEvent(b.dataset.open,true)});
+/* ---------- upcoming events ---------- */
+const MON=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+function addDays(d,n){const t=new Date(d+'T12:00:00');t.setDate(t.getDate()+n);return t.toLocaleDateString('sv-SE')}
+function daysTo(d){if(!d)return null;return Math.round((new Date(d+'T12:00:00')-new Date(today()+'T12:00:00'))/864e5)}
+function upcoming(){return S.events.filter(e=>e.status!=='archived'&&(e.date||'')>=today()).sort((a,b)=>(a.date||'').localeCompare(b.date||''))}
+function remDate(e){return e.promoDate||e.date}
+function leftText(e){
+  const p=e.promoDate,dp=daysTo(p),de=daysTo(e.date);
+  if(p&&dp>1)return `Tanıtıma ${dp} gün`;
+  if(p&&dp===1)return 'Yarın tanıtım';
+  if(p&&dp===0)return 'Bugün tanıtım';
+  if(de>1)return `Etkinliğe ${de} gün`;
+  if(de===1)return 'Yarın etkinlik';
+  return 'Bugün etkinlik';
+}
+function dateBox(d){if(!d)return'';const m=+d.slice(5,7)-1;return `<div class="up-date"><b>${+d.slice(8,10)}</b><span>${MON[m]}</span></div>`}
+function renderUpcoming(){
+  const list=upcoming();
+  $('#upCount').textContent=list.length?`${list.length} etkinlik`:'';
+  $('#icsBtn').hidden=!list.length;
+  $('#upList').innerHTML=list.length?list.map(e=>{const soon=daysTo(remDate(e))<=1;
+    return `<div class="uprow${soon?' soon':''}">${dateBox(remDate(e))}<div class="main"><div class="t">${esc(e.name)}</div>
+      <div class="m">${e.promoDate?'Tanıtım '+fmtD(e.promoDate)+' · ':''}Etkinlik ${fmtD(e.date)}${+e.price?' · '+money(e.price):''}${e.contact?' · '+esc(e.contact):''}${e.note?' · '+esc(e.note):''}</div></div>
+      <span class="left">${leftText(e)}</span>
+      ${e.id===S.eid?'':`<button class="btn ghost sm" type="button" data-open="${esc(e.id)}">Aç</button>`}</div>`}).join('')
+    :'<div class="empty"><b>Yaklaşan etkinlik yok</b>Aşağıdan yeni etkinlik eklediğinizde burada görünür.</div>';
+  // Giriş banner: nearest upcoming that is not the open event
+  const nx=list.find(e=>e.id!==S.eid);const b=$('#upBanner');
+  if(!nx){b.hidden=true;return}
+  const soon=daysTo(remDate(nx))<=3;b.className='card up-banner'+(soon?' soon':'');
+  b.innerHTML=`${dateBox(remDate(nx))}<div style="min-width:0;flex:1"><div class="hint" style="font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:11.5px">Sıradaki etkinlik · ${leftText(nx)}</div><b>${esc(nx.name)}</b><div class="hint">${nx.promoDate?'Tanıtım '+fmtD(nx.promoDate)+' · ':''}Etkinlik ${fmtD(nx.date)}</div></div>`;
+  b.hidden=false;
+}
+$('#upBanner').addEventListener('click',()=>setTab('etk'));
+$('#upList').addEventListener('click',e=>{const b=e.target.closest('[data-open]');if(b)selectEvent(b.dataset.open,true)});
+function icsText(){
+  const esc2=t=>String(t||'').replace(/\\/g,'\\\\').replace(/[,;]/g,m=>'\\'+m).replace(/\n/g,'\\n');
+  const d8=d=>d.replace(/-/g,'');const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Ulugbey Yonetim//Etkinlik Takip//TR','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:Uluğbey Etkinlikleri','X-WR-TIMEZONE:Europe/Istanbul'];
+  const ev1=(uid,date,title,desc,alarm)=>{L.push('BEGIN:VEVENT','UID:'+uid+'@ulugbey-yonetim','DTSTAMP:'+stamp,'DTSTART;VALUE=DATE:'+d8(date),'DTEND;VALUE=DATE:'+d8(addDays(date,1)),'SUMMARY:'+esc2(title),'DESCRIPTION:'+esc2(desc),'TRANSP:TRANSPARENT');
+    if(alarm)L.push('BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+esc2(alarm),'TRIGGER:-PT15H','END:VALARM');L.push('END:VEVENT')};
+  for(const e of upcoming()){
+    const info=`${S.school.schoolName||'Uluğbey İlkokulu'} · ${e.name}${+e.price?' · Ücret '+money(e.price):''}${e.contact?' · Yetkili: '+e.contact:''}${e.note?' · '+e.note:''}`;
+    if(e.promoDate){ev1(e.id+'-tanitim',e.promoDate,'Tanıtım: '+e.name,info,'Yarın tanıtım: '+e.name);ev1(e.id+'-etkinlik',e.date,e.name,info,null)}
+    else ev1(e.id+'-etkinlik',e.date,e.name,info,'Yarın etkinlik: '+e.name);
+  }
+  L.push('END:VCALENDAR');return L.join('\r\n')+'\r\n';
+}
+$('#icsBtn').addEventListener('click',()=>{if(!upcoming().length){toast('Yaklaşan etkinlik yok');return}
+  saveBlob('ulugbey-etkinlikleri.ics',new Blob([icsText()],{type:'text/calendar;charset=utf-8'}),'text/calendar','Takvim dosyası indirildi. Açıp "Tümünü ekle" deyin.')});
+
+/* tek seferlik: defterdeki 2026-2027 etkinlik planı */
+const PLANNED_V=1;
+const PLAN=[
+  {id:'ev-hologram-2026',name:'Hologram',promoDate:'2026-11-26',date:'2026-11-27',price:120,firmPer:60,schoolPer:60},
+  {id:'ev-ahsap-boyama-2026',name:'Ahşap Boyama',promoDate:'2026-12-22',date:'2026-12-23',price:150,firmPer:75,schoolPer:75,note:'+5000 TL'},
+  {id:'ev-komedi-dans-show-2027',name:'Komedi Dans Show',promoDate:'2027-01-14',date:'2027-01-15',price:100,firmPer:50,schoolPer:50,contact:'Bedri'},
+  {id:'ev-sanal-gerceklik-2027',name:'Sanal Gerçeklik Gözlüğü',promoDate:'',date:'2027-02-10',price:100,firmPer:50,schoolPer:50,contact:'Cahit'},
+  {id:'ev-canta-boyama-2027',name:'Çanta Boyama Etkinliği',promoDate:'2027-03-18',date:'2027-03-19',price:150,firmPer:100,schoolPer:50},
+];
+async function migratePlan(db){
+  try{const m=await db.doc('cfg/main').get({source:'server'});if(!m.exists||(m.data().plannedV||0)>=PLANNED_V)return;
+    const cls=tplList().map(c=>({...c}));
+    for(const p of PLAN){const r=db.doc('events/'+p.id);const g=await r.get({source:'server'});if(g.exists)continue;
+      const {id,...b}=p;await r.set({contact:'',note:'',...b,status:'active',createdAt:Date.now(),classes:cls})}
+    const u=db.doc('events/ev-uzay-cadiri-2026');const ug=await u.get({source:'server'});
+    if(ug.exists){const d=ug.data(),patch={};if(!(+d.price)){patch.price=120;patch.firmPer=60;patch.schoolPer=60}
+      if(!d.promoDate)patch.promoDate='2026-10-05';if(!d.contact)patch.contact='Ebubekir';if(Object.keys(patch).length)await u.update(patch)}
+    await db.doc('cfg/main').set({plannedV:PLANNED_V},{merge:true});
+  }catch(e){}
+}
 
 /* ---------- writes ---------- */
 function needDb(){if(!S.db){toast('Veritabanına bağlanılmadı. Giriş yapıp tekrar deneyin.');return false}return true}
@@ -754,7 +854,7 @@ $('#pruneBtn').addEventListener('click',e=>{if(!needRw())return;const a=agg(S.sa
 
 $('#evForm').addEventListener('submit',async evt=>{evt.preventDefault();if(!needRw())return;
   const name=$('#eName').value.trim();if(!name){toast('Etkinlik adı boş olamaz');return}
-  if(await wr(()=>S.db.doc('events/'+S.eid).update({name,date:$('#eDate').value||today(),price:pnum($('#ePrice').value),firmPer:pnum($('#eFirm').value),schoolPer:pnum($('#eSchool').value)}),'Etkinlik kaydedildi'))evDirty=false});
+  if(await wr(()=>S.db.doc('events/'+S.eid).update({name,date:$('#eDate').value||today(),price:pnum($('#ePrice').value),firmPer:pnum($('#eFirm').value),schoolPer:pnum($('#eSchool').value),promoDate:$('#ePromo').value||'',contact:$('#eContact').value.trim(),note:$('#eNote').value.trim()}),'Etkinlik kaydedildi'))evDirty=false});
 $('#eArchive').addEventListener('click',e=>{if(!needDb())return;const x=ev();if(!x)return;const arc=x.status==='archived';
   confirmTap(e.currentTarget,arc?'Arşivden çıkarılsın mı?':'Arşive alınsın mı?',()=>wr(()=>S.db.doc('events/'+x.id).update({status:arc?'active':'archived',archivedAt:arc?null:Date.now()}),arc?'Etkinlik arşivden çıkarıldı':'Etkinlik arşive alındı'))});
 $('#eDelete').addEventListener('click',e=>{if(!needDb())return;const x=ev();if(!x)return;
@@ -763,13 +863,13 @@ $('#eDelete').addEventListener('click',e=>{if(!needDb())return;const x=ev();if(!
 $('#newEvForm').addEventListener('submit',async evt=>{evt.preventDefault();if(!needDb())return;
   const name=$('#nName').value.trim();if(!name){toast('Etkinlik adı yazın');return}
   const id=uid('ev');const doc={name,date:$('#nDate').value||today(),price:pnum($('#nPrice').value),firmPer:pnum($('#nFirm').value),schoolPer:pnum($('#nSchool').value),
-    status:'active',createdAt:Date.now(),classes:tplList().map(c=>({...c}))};
-  if(await wr(()=>S.db.doc('events/'+id).set(doc),'Etkinlik oluşturuldu')){['#nName','#nPrice','#nFirm','#nSchool'].forEach(i=>$(i).value='');$('#nDate').value=today();
+    promoDate:$('#nPromo').value||'',contact:$('#nContact').value.trim(),note:$('#nNote').value.trim(),status:'active',createdAt:Date.now(),classes:tplList().map(c=>({...c}))};
+  if(await wr(()=>S.db.doc('events/'+id).set(doc),'Etkinlik oluşturuldu')){['#nName','#nPrice','#nFirm','#nSchool','#nPromo','#nContact','#nNote'].forEach(i=>$(i).value='');$('#nDate').value=today();
     $('#newEvDetails').open=false;pendingSelect=id;selectEvent(id,false)}});
 $('#nDate').value=today();
 
 $('#schoolForm').addEventListener('submit',async evt=>{evt.preventDefault();if(!needDb())return;
-  const n=$('#cSchool').value.trim()||'Uluğbey İlkokulu';await wr(()=>S.db.doc('cfg/main').set({schoolName:n}),'Okul adı kaydedildi')});
+  const n=$('#cSchool').value.trim()||'Uluğbey İlkokulu';await wr(()=>S.db.doc('cfg/main').set({schoolName:n},{merge:true}),'Okul adı kaydedildi')});
 $('#devName').value=ls.get('ul_dev')||'';$('#devName').addEventListener('input',e=>ls.set('ul_dev',e.target.value));
 
 $('#logoFile').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f||!needDb())return;
@@ -867,18 +967,19 @@ $('#tMode').addEventListener('click',e=>{const b=e.target.closest('button');if(!
   document.querySelectorAll('#tMode button').forEach(x=>x.classList.toggle('on',x===b));drawPreview()});
 ['#tCount','#tStart'].forEach(id=>$(id).addEventListener('input',()=>{clearTimeout(drawPreview._t);drawPreview._t=setTimeout(drawPreview,300)}));
 
+async function saveBlob(name,blob,mime,msg){
+  const standaloneIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)&&(navigator.standalone||matchMedia('(display-mode: standalone)').matches);
+  try{const file=new File([blob],name,{type:mime});
+    if(standaloneIOS&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}
+  }catch(e){if(e&&e.name==='AbortError')return}
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);toast(msg||('İndirildi: '+name));
+}
 async function savePdf(name,canvases){
   const {jsPDF}=window.jspdf||{};if(!jsPDF){toast('PDF aracı yüklenemedi. İnternet bağlantısını kontrol edin.');return}
   const doc=new jsPDF({unit:'mm',format:'a4',orientation:'portrait',compress:true});
   canvases.forEach((cv,i)=>{if(i)doc.addPage();doc.addImage(cv.toDataURL('image/jpeg',0.9),'JPEG',0,0,210,297,undefined,'FAST')});
-  const blob=doc.output('blob');
-  const standaloneIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)&&(navigator.standalone||matchMedia('(display-mode: standalone)').matches);
-  try{
-    const file=new File([blob],name,{type:'application/pdf'});
-    if(standaloneIOS&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}
-  }catch(e){if(e&&e.name==='AbortError')return}
-  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),60000);toast('PDF indirildi: '+name);
+  await saveBlob(name,doc.output('blob'),'application/pdf','PDF indirildi: '+name);
 }
 async function busy(btn,label,fn){btn.disabled=true;const old=btn.textContent;btn.textContent=label;try{await fn()}finally{btn.disabled=false;btn.textContent=old}}
 $('#tPdf').addEventListener('click',e=>{const list=ticketList();if(!list.length){toast('Üretilecek bilet yok');return}
@@ -962,8 +1063,10 @@ function selectEvent(id,announce){
 function pickDefault(){
   const want=pendingSelect||ls.get('ul_eid');
   if(want&&S.events.some(e=>e.id===want))return want;
-  const sorted=S.events.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  const act=sorted.find(e=>e.status!=='archived');return act?act.id:(sorted[0]?sorted[0].id:null);
+  const open=S.events.filter(e=>e.status!=='archived').sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const from=addDays(today(),-3);const next=open.find(e=>(e.date||'')>=from);if(next)return next.id;
+  if(open.length)return open[open.length-1].id;
+  const all=S.events.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));return all[0]?all[0].id:null;
 }
 setTab((location.hash||'').slice(1)||ls.get('ul_tab')||'giris');setEntry('paid');renderAll();
 /* ---------- firebase ---------- */
@@ -1021,7 +1124,7 @@ function startData(){
     const id=pickDefault();if(id!==S.eid||!S.unsubSales)selectEvent(id,false);else renderAll();
     if(pendingSelect&&id===pendingSelect)pendingSelect=null;
     if(S.tab==='etk')loadEventTotals()},err));
-  seedIfEmpty(db).then(()=>migrateClasses(db));
+  seedIfEmpty(db).then(()=>migrateClasses(db)).then(()=>migratePlan(db));
 }
 // Tek seferlik: şube listesini okulun gerçek listesine çeker. Girişi olan sınıflara dokunmaz.
 async function migrateClasses(db){
