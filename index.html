@@ -1,0 +1,1023 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Uluğbey Yönetim</title>
+<meta name="description" content="Uluğbey İlkokulu etkinlik ücret takibi, raporlar ve bilet üretimi">
+<meta name="theme-color" content="#0E1433">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Uluğbey">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: phone-app shell — starry navy header with event chip, single scrolling column (max 560px), fixed bottom tab bar */
+:root{
+  --bg:#F2F3F8; --surface:#FFFFFF; --ink:#141932; --muted:#5A6283; --line:#DCDFEC;
+  --accent:#2B3A9E; --accent-ink:#FFFFFF; --accent-soft:#E6E8F7; --brass:#A87A1F; --brass-soft:#F6EDDA;
+  --good:#1D7448; --good-soft:#E2F2E9; --bad:#B3261E; --bad-soft:#FBE7E5;
+  --hdr:#0E1433; --hdr-ink:#EEF0FF; --hdr-muted:#AAB1DA; --hdr-star:rgba(255,255,255,.55); --hdr-chip:rgba(255,255,255,.1);
+  --tab:#FFFFFF; --shadow:0 1px 2px rgba(20,25,50,.06),0 4px 14px rgba(20,25,50,.05);
+  --f-display:"Unbounded","Figtree",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B0E1E; --surface:#151931; --ink:#E7E9F7; --muted:#9AA1C4; --line:#272C4D;
+  --accent:#8D99FF; --accent-ink:#0B0E1E; --accent-soft:#1E2450; --brass:#E2B65A; --brass-soft:#33280F;
+  --good:#58C892; --good-soft:#123326; --bad:#FF8A80; --bad-soft:#3A1715;
+  --hdr:#070A1A; --hdr-ink:#EEF0FF; --hdr-muted:#9AA1C4; --hdr-star:rgba(255,255,255,.45); --hdr-chip:rgba(255,255,255,.08);
+  --tab:#121630; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B0E1E; --surface:#151931; --ink:#E7E9F7; --muted:#9AA1C4; --line:#272C4D;
+  --accent:#8D99FF; --accent-ink:#0B0E1E; --accent-soft:#1E2450; --brass:#E2B65A; --brass-soft:#33280F;
+  --good:#58C892; --good-soft:#123326; --bad:#FF8A80; --bad-soft:#3A1715;
+  --hdr:#070A1A; --hdr-ink:#EEF0FF; --hdr-muted:#9AA1C4; --hdr-star:rgba(255,255,255,.45); --hdr-chip:rgba(255,255,255,.08);
+  --tab:#121630; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;color-scheme:light}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+.hdr{background:var(--hdr);color:var(--hdr-ink);position:relative;overflow:hidden;
+  background-image:radial-gradient(1.4px 1.4px at 12% 30%,var(--hdr-star),transparent 60%),radial-gradient(1px 1px at 33% 70%,var(--hdr-star),transparent 60%),radial-gradient(1.6px 1.6px at 58% 22%,var(--hdr-star),transparent 60%),radial-gradient(1px 1px at 76% 64%,var(--hdr-star),transparent 60%),radial-gradient(1.2px 1.2px at 91% 34%,var(--hdr-star),transparent 60%)}
+.hdr-in{max-width:560px;margin:0 auto;padding:14px 16px 14px;display:flex;flex-direction:column;gap:10px}
+.hdr-top{display:flex;align-items:center;gap:12px}
+.hdr-logo{width:40px;height:40px;border-radius:50%;background:var(--hdr-chip);display:grid;place-items:center;flex:none;overflow:hidden}
+.hdr-logo img{width:100%;height:100%;object-fit:contain;background:#fff}
+.hdr h1{font-family:var(--f-display);font-weight:700;font-size:18px;letter-spacing:.01em;margin:0;line-height:1.15}
+.hdr .mod{font-size:11.5px;color:var(--hdr-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-top:3px}
+.hdr .mod b{color:var(--hdr-ink)}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.sync{font-size:11px;color:var(--hdr-muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:#7C83A8}
+.dot.on{background:#58C892;box-shadow:0 0 0 3px rgba(88,200,146,.2)}
+.gear{border:0;background:var(--hdr-chip);color:var(--hdr-ink);width:36px;height:36px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.gear svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.evchip{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;cursor:pointer;background:var(--hdr-chip);color:var(--hdr-ink);border-radius:12px;padding:9px 12px;font:inherit}
+.evchip .n{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.evchip .d{font-size:12.5px;color:var(--hdr-muted);white-space:nowrap}
+.evchip .arc{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:#E2B65A;color:#1B1405;padding:2px 7px;border-radius:99px}
+main{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:16px 120px;display:flex;flex-direction:column;gap:14px}
+.view{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);min-width:0}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 12px;font-weight:700}
+.stack{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1 1 140px;min-width:0}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--muted)}
+input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;min-width:0}
+input:disabled,select:disabled{opacity:.55}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{font:inherit;font-weight:700;font-size:15px;border:0;border-radius:11px;padding:12px 16px;background:var(--accent);color:var(--accent-ink);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+.btn.warn{background:var(--bad-soft);color:var(--bad)}
+.btn.brass{background:var(--brass);color:var(--surface)}
+.btn.sm{padding:7px 11px;font-size:13px;border-radius:9px}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.block{width:100%}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.hint.bad{color:var(--bad)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-width:0}
+.tile .k{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.tile .v{font-family:var(--f-display);font-weight:500;font-size:20px;margin-top:4px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tile.hero{grid-column:1/-1;background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tile.hero .k{color:inherit;opacity:.8}
+.tile.hero .v{font-size:28px}
+.tile .s{font-size:12px;color:var(--muted);margin-top:2px}
+.tile.hero .s{color:inherit;opacity:.85}
+.tile.free{background:var(--brass-soft);border-color:transparent}
+.tile.free .k,.tile.free .v{color:var(--brass)}
+.list{display:flex;flex-direction:column}
+.li{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.li:first-child{border-top:0}
+.li .main{flex:1 1 120px;min-width:0}
+.li .t{font-weight:700}
+.li .m{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.pill.free{background:var(--brass-soft);color:var(--brass)}
+.pill.zero{background:transparent;color:var(--muted);border:1px dashed var(--line)}
+.pill.arc{background:var(--brass-soft);color:var(--brass)}
+.grade-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.grade-h h3{margin:0;font-family:var(--f-display);font-weight:500;font-size:16px}
+.grade-h span{font-size:13px;color:var(--muted)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px 6px;border-bottom:1px solid var(--line);font-weight:700;white-space:nowrap}
+td{padding:8px 6px;border-bottom:1px solid var(--line)}
+td.r,th.r{text-align:right;white-space:nowrap}
+tr.sub td{font-weight:700;background:var(--accent-soft)}
+tr.tot td{font-weight:800;border-top:2px solid var(--ink)}
+.empty{text-align:center;padding:22px 10px;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:3px;gap:3px}
+.seg button{flex:1;font:inherit;font-size:14px;font-weight:600;border:0;background:transparent;color:var(--muted);padding:9px 6px;border-radius:8px;cursor:pointer}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.seg.paidfree button.on[data-m="free"]{color:var(--brass)}
+canvas.prev{width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fff;display:block}
+.logo-box{display:flex;align-items:center;gap:14px}
+.logo-box .lb{width:72px;height:72px;border-radius:12px;border:1px dashed var(--line);display:grid;place-items:center;overflow:hidden;background:#fff;flex:none;color:#5A6283;font-size:11px;text-align:center}
+.logo-box .lb img{max-width:100%;max-height:100%}
+.banner{border-radius:12px;padding:12px 14px;font-size:14px;background:var(--bad-soft);color:var(--bad);font-weight:600}
+.banner.info{background:var(--accent-soft);color:var(--accent)}
+.banner.arc{background:var(--brass-soft);color:var(--brass)}
+.free-note{background:var(--brass-soft);color:var(--brass);border-radius:10px;padding:10px 12px;font-size:13.5px;font-weight:600}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--tab);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:20}
+nav.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav.tabs button{font:inherit;border:0;background:transparent;color:var(--muted);padding:9px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;font-weight:600;cursor:pointer}
+nav.tabs button svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button.on{color:var(--accent)}
+nav.tabs button.on .ic{background:var(--accent-soft)}
+nav.tabs .ic{padding:3px 14px;border-radius:99px;display:grid;place-items:center}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:12px;font-weight:600;font-size:14px;z-index:30;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.inline-edit{display:flex;gap:6px;flex:1;min-width:0}
+.inline-edit input{padding:7px 9px;font-size:15px}
+.evrow{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+.evrow:first-child{border-top:0}
+.evrow .main{flex:1;min-width:0}
+.evrow .t{font-weight:700;overflow-wrap:anywhere}
+.evrow .m{font-size:12.5px;color:var(--muted)}
+.evrow.cur .t{color:var(--accent)}
+details.sub-card summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+details.sub-card summary::-webkit-details-marker{display:none}
+details.sub-card summary::after{content:"+";font-size:20px;color:var(--muted);line-height:1}
+details.sub-card[open] summary::after{content:"−"}
+details.sub-card[open] summary{margin-bottom:12px}
+@media (prefers-reduced-motion:no-preference){.btn,.seg button,nav.tabs .ic{transition:background .15s,color .15s}}
+/* login */
+.login{position:fixed;inset:0;z-index:50;background:var(--hdr);color:var(--hdr-ink);display:flex;align-items:center;justify-content:center;padding:24px 16px;overflow:auto;
+  background-image:radial-gradient(1.4px 1.4px at 12% 20%,var(--hdr-star),transparent 60%),radial-gradient(1px 1px at 30% 80%,var(--hdr-star),transparent 60%),radial-gradient(1.6px 1.6px at 70% 15%,var(--hdr-star),transparent 60%),radial-gradient(1px 1px at 85% 60%,var(--hdr-star),transparent 60%),radial-gradient(1.2px 1.2px at 50% 45%,var(--hdr-star),transparent 60%)}
+.login-box{width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;text-align:center}
+.login-box img.app{width:84px;height:84px;border-radius:22px;margin:0 auto;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.login-box h1{font-family:var(--f-display);font-weight:700;font-size:24px;margin:6px 0 0}
+.login-box p{margin:0;color:var(--hdr-muted);font-size:14px}
+.login-box input{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#fff;text-align:center;font-size:22px;letter-spacing:.3em;padding:14px}
+.login-box input::placeholder{letter-spacing:normal;font-size:16px;color:var(--hdr-muted)}
+.login-box .btn{background:#E2B65A;color:#1B1405}
+.login-box .err{color:#FF9A90;font-weight:600;font-size:14px;min-height:20px}
+.login-box .lnk{background:none;border:0;color:var(--hdr-muted);font:inherit;font-size:13.5px;text-decoration:underline;cursor:pointer;padding:6px}
+.install-card{display:flex;gap:12px;align-items:center}
+.install-card img{width:48px;height:48px;border-radius:12px;flex:none}
+</style>
+</head>
+<body>
+<div class="login" id="login" hidden>
+  <form class="login-box" id="loginForm" autocomplete="off">
+    <img class="app" src="icons/icon-192.png" alt="">
+    <h1>Uluğbey Yönetim</h1>
+    <p id="loginSub">Devam etmek için PIN kodunu girin.</p>
+    <input id="pin1" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN kodu" aria-label="PIN kodu">
+    <input id="pin2" type="password" inputmode="numeric" autocomplete="new-password" placeholder="PIN kodunu tekrar girin" aria-label="PIN tekrar" hidden>
+    <div class="err" id="loginErr"></div>
+    <button class="btn block" type="submit" id="loginBtn">Giriş yap</button>
+    <button class="lnk" type="button" id="setupToggle">İlk kurulum: PIN belirle</button>
+  </form>
+</div>
+
+<header class="hdr"><div class="hdr-in">
+  <div class="hdr-top">
+    <div class="hdr-logo" id="hdrLogo"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="6" fill="none" stroke="#E2B65A" stroke-width="1.6"/><ellipse cx="13" cy="13" rx="11.5" ry="4" fill="none" stroke="#AAB1DA" stroke-width="1.2" transform="rotate(-20 13 13)"/></svg></div>
+    <div><h1>Uluğbey Yönetim</h1><div class="mod">Modül · <b>Etkinlik Takip</b></div></div>
+    <div class="hdr-right">
+      <div class="sync"><span class="dot" id="syncDot"></span><span id="syncTxt">Bağlanıyor</span></div>
+      <button class="gear" type="button" id="gearBtn" aria-label="Ayarlar"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3.6 15H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9.7 4.6V4a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8"/></svg></button>
+    </div>
+  </div>
+  <button class="evchip" type="button" id="evChip"><span class="n" id="evName">Etkinlik yükleniyor…</span><span class="d" id="evDate"></span><span class="arc" id="evArc" hidden>Arşiv</span></button>
+</div></header>
+
+<main>
+  <div id="banner" hidden></div>
+  <div id="arcBanner" class="banner arc" hidden>Bu etkinlik arşivde. Kayıtlar yalnızca görüntülenir. Değişiklik için Etkinlikler sekmesinden arşivden çıkarın.</div>
+
+  <!-- GİRİŞ -->
+  <section class="view" id="v-giris">
+    <div class="tiles" id="girisTiles"></div>
+    <form class="card" id="saleForm" autocomplete="off">
+      <div class="seg paidfree" id="entryMode" style="margin-bottom:14px"><button type="button" data-m="paid" class="on">Ücretli öğrenci</button><button type="button" data-m="free">Kontenjan (ücretsiz)</button></div>
+      <div class="stack">
+        <label class="f">Sınıf
+          <select id="sClass" required></select>
+        </label>
+        <div class="row">
+          <label class="f"><span id="sCountLbl">Ücretli öğrenci sayısı</span>
+            <input id="sCount" type="number" inputmode="numeric" min="1" step="1" placeholder="Örn. 24" required>
+          </label>
+          <label class="f" id="sAmountWrap">Toplanan tutar (₺)
+            <input id="sAmount" type="text" inputmode="decimal" placeholder="Otomatik">
+          </label>
+        </div>
+        <div class="free-note" id="freeNote" hidden>Kontenjan öğrencileri katılımcı sayısına eklenir. Toplanan ücrete, firma ve okul payına yansımaz.</div>
+        <label class="f">Not (isteğe bağlı)
+          <input id="sNote" type="text" placeholder="Örn. teslim eden öğretmen">
+        </label>
+        <button class="btn block" type="submit" id="sSave">Kaydet</button>
+        <p class="hint" id="sHint"></p>
+      </div>
+    </form>
+    <div class="card">
+      <div class="grade-h"><h3>Son girişler</h3><span id="recentInfo"></span></div>
+      <div class="list" id="recent"></div>
+    </div>
+  </section>
+
+  <!-- SINIFLAR -->
+  <section class="view" id="v-sinif" hidden>
+    <div class="card" id="clsTools">
+      <h2>Bu etkinliğin sınıfları</h2>
+      <form class="row" id="addClassForm" autocomplete="off">
+        <label class="f">Kademe
+          <select id="acGrade"><option value="ANA">Anasınıfı</option><option value="1">1. sınıf</option><option value="2">2. sınıf</option><option value="3">3. sınıf</option><option value="4">4. sınıf</option></select>
+        </label>
+        <label class="f">Şube
+          <input id="acSec" type="text" maxlength="12" placeholder="Örn. L" required>
+        </label>
+        <button class="btn" type="submit" style="align-self:flex-end;flex:0 0 auto">Ekle</button>
+      </form>
+      <div class="row" style="margin-top:12px">
+        <button class="btn warn" type="button" id="pruneBtn">Öğrencisi olmayan sınıfları kaldır</button>
+      </div>
+      <p class="hint" id="pruneHint" style="margin-top:8px">Silme ve kaldırma yalnızca bu etkinliği etkiler. Okulun şube listesi Ayarlar'da durur.</p>
+    </div>
+    <div id="classGroups" class="view"></div>
+  </section>
+
+  <!-- RAPOR -->
+  <section class="view" id="v-rapor" hidden>
+    <div class="seg" id="rMode"><button type="button" data-m="event" class="on">Etkinlik raporu</button><button type="button" data-m="year">Yıllık rapor</button></div>
+    <div id="rEvent" class="view">
+      <div class="card">
+        <div class="row">
+          <label class="f">Gün
+            <select id="rDay"></select>
+          </label>
+          <button class="btn" type="button" id="rPdf" style="align-self:flex-end">Rapor PDF</button>
+        </div>
+      </div>
+      <div class="tiles" id="rTiles"></div>
+      <div class="card"><h2>Sınıf bazında</h2><div class="tw" id="rTable"></div></div>
+    </div>
+    <div id="rYear" class="view" hidden>
+      <div class="card">
+        <div class="row">
+          <label class="f">Eğitim-öğretim yılı
+            <select id="yYear"></select>
+          </label>
+          <button class="btn" type="button" id="yPdf" style="align-self:flex-end">Yıllık PDF</button>
+        </div>
+        <p class="hint" style="margin-top:8px">Eylül–Ağustos arası tüm etkinlikler, arşivdekiler dahil.</p>
+      </div>
+      <div class="tiles" id="yTiles"></div>
+      <div class="card"><h2>Etkinlik bazında</h2><div class="tw" id="yTable"></div></div>
+    </div>
+  </section>
+
+  <!-- BİLET -->
+  <section class="view" id="v-bilet" hidden>
+    <div class="card">
+      <h2>Bilet üret</h2>
+      <div class="seg" id="tMode"><button type="button" data-m="blank" class="on">Numaralı bilet</button><button type="button" data-m="class">Girişlere göre sınıflı</button></div>
+      <div class="row" style="margin-top:12px" id="tBlankOpts">
+        <label class="f">Bilet sayısı
+          <input id="tCount" type="number" inputmode="numeric" min="1" step="1" value="36">
+        </label>
+        <label class="f">Başlangıç no
+          <input id="tStart" type="number" inputmode="numeric" min="1" step="1" value="1">
+        </label>
+      </div>
+      <p class="hint" id="tInfo" style="margin-top:10px"></p>
+      <button class="btn block" type="button" id="tPdf" style="margin-top:12px">Bilet PDF indir</button>
+    </div>
+    <div class="card"><h2>Önizleme · 1. sayfa</h2><canvas class="prev" id="tPrev" width="1050" height="1485"></canvas></div>
+  </section>
+
+  <!-- ETKİNLİKLER -->
+  <section class="view" id="v-etk" hidden>
+    <form class="card" id="evForm" autocomplete="off">
+      <h2>Seçili etkinlik</h2>
+      <div class="stack">
+        <label class="f">Etkinlik adı<input id="eName" type="text"></label>
+        <label class="f">Etkinlik tarihi<input id="eDate" type="date"></label>
+        <label class="f">Etkinlik ücreti (öğrenci başı ₺)<input id="ePrice" type="text" inputmode="decimal" placeholder="Örn. 150"></label>
+        <div class="row">
+          <label class="f">Firma payı (öğrenci başı ₺)<input id="eFirm" type="text" inputmode="decimal" placeholder="Örn. 120"></label>
+          <label class="f">Okul payı (öğrenci başı ₺)<input id="eSchool" type="text" inputmode="decimal" placeholder="Örn. 30"></label>
+        </div>
+        <p class="hint" id="eHint"></p>
+        <button class="btn block" type="submit" id="eSave">Etkinliği kaydet</button>
+        <div class="row">
+          <button class="btn brass" type="button" id="eArchive">Arşive al</button>
+          <button class="btn warn" type="button" id="eDelete">Etkinliği sil</button>
+        </div>
+      </div>
+    </form>
+    <div class="card">
+      <details class="sub-card" id="newEvDetails">
+        <summary>Yeni etkinlik ekle</summary>
+        <form class="stack" id="newEvForm" autocomplete="off">
+          <label class="f">Etkinlik adı<input id="nName" type="text" placeholder="Örn. Planetaryum Gezisi" required></label>
+          <label class="f">Etkinlik tarihi<input id="nDate" type="date" required></label>
+          <label class="f">Etkinlik ücreti (öğrenci başı ₺)<input id="nPrice" type="text" inputmode="decimal" placeholder="Örn. 150"></label>
+          <div class="row">
+            <label class="f">Firma payı (₺)<input id="nFirm" type="text" inputmode="decimal"></label>
+            <label class="f">Okul payı (₺)<input id="nSchool" type="text" inputmode="decimal"></label>
+          </div>
+          <p class="hint">Sınıflar okulun şube listesinden kopyalanır. Yeni etkinlik bu telefonda hemen açılır.</p>
+          <button class="btn block" type="submit">Etkinliği oluştur</button>
+        </form>
+      </details>
+    </div>
+    <div class="card"><div class="grade-h"><h3>Etkinlikler</h3><span id="evCount"></span></div><div id="evList"></div></div>
+  </section>
+
+  <!-- AYARLAR -->
+  <section class="view" id="v-ayar" hidden>
+    <div class="card" id="installCard">
+      <h2>Telefona yükle</h2>
+      <div class="install-card">
+        <img src="icons/icon-192.png" alt="">
+        <div style="min-width:0;flex:1">
+          <p class="hint" id="installTxt">Uygulamayı ana ekrana ekleyerek normal bir uygulama gibi açabilirsiniz.</p>
+        </div>
+      </div>
+      <button class="btn block" type="button" id="installBtn" style="margin-top:12px" hidden>Uygulamayı yükle</button>
+    </div>
+    <form class="card" id="schoolForm" autocomplete="off">
+      <h2>Okul</h2>
+      <div class="stack">
+        <label class="f">Okul adı<input id="cSchool" type="text"></label>
+        <button class="btn block" type="submit">Kaydet</button>
+      </div>
+    </form>
+    <div class="card">
+      <h2>Okul logosu</h2>
+      <div class="logo-box">
+        <div class="lb" id="logoPrev">Logo yok</div>
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+          <label class="btn ghost sm" for="logoFile" style="cursor:pointer">Logo yükle</label>
+          <input id="logoFile" type="file" accept="image/*" hidden>
+          <button class="btn warn sm" type="button" id="logoDel" hidden>Logoyu kaldır</button>
+        </div>
+      </div>
+      <p class="hint" style="margin-top:10px">Logo biletlerde ve PDF raporlarında kullanılır. Tüm telefonlarda ortak görünür.</p>
+    </div>
+    <div class="card">
+      <details class="sub-card">
+        <summary>Okulun şube listesi <span class="pill" id="tplCount" style="margin-left:auto"></span></summary>
+        <p class="hint" style="margin-bottom:10px">Yeni etkinlikler bu listeyle başlar. Buradaki değişiklik mevcut etkinlikleri etkilemez.</p>
+        <form class="row" id="tplAddForm" autocomplete="off">
+          <label class="f">Kademe
+            <select id="tGrade"><option value="ANA">Anasınıfı</option><option value="1">1. sınıf</option><option value="2">2. sınıf</option><option value="3">3. sınıf</option><option value="4">4. sınıf</option></select>
+          </label>
+          <label class="f">Şube<input id="tSec" type="text" maxlength="12" placeholder="Örn. L" required></label>
+          <button class="btn" type="submit" style="align-self:flex-end;flex:0 0 auto">Ekle</button>
+        </form>
+        <div id="tplList" class="view" style="margin-top:12px"></div>
+      </details>
+    </div>
+    <div class="card">
+      <h2>Bu telefon</h2>
+      <label class="f">Giriş yapanın adı<input id="devName" type="text" placeholder="Örn. Emrah Bey"></label>
+      <p class="hint" style="margin-top:8px">Girişlerin yanında kimin kaydettiği görünür. Bu ad yalnızca bu telefonda saklanır.</p>
+    </div>
+    <form class="card" id="pinForm" autocomplete="off">
+      <h2>PIN kodu</h2>
+      <div class="stack">
+        <label class="f">Yeni PIN (en az 6 hane)<input id="newPin" type="password" inputmode="numeric" autocomplete="new-password"></label>
+        <button class="btn ghost block" type="submit">PIN'i değiştir</button>
+        <p class="hint">PIN değişince diğer telefonlar yeni PIN ile yeniden giriş yapar.</p>
+        <button class="btn warn block" type="button" id="logoutBtn">Bu telefonda çıkış yap</button>
+      </div>
+    </form>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Sekmeler"><div class="in">
+  <button type="button" data-tab="giris" class="on"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg></span>Giriş</button>
+  <button type="button" data-tab="sinif"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H4z"/><path d="M8 20h8M12 16v4"/></svg></span>Sınıflar</button>
+  <button type="button" data-tab="rapor"><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></span>Rapor</button>
+  <button type="button" data-tab="bilet"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M15 6v12" stroke-dasharray="2 2"/></svg></span>Bilet</button>
+  <button type="button" data-tab="etk"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3"/></svg></span>Etkinlikler</button>
+</div></nav>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+</body>
+</html>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+</body>
+</html>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</body>
+</html>
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const SEC=['A','B','C','D','E','F','G','H','I','İ','J','K'];
+const GRADES=[{g:'ANA',n:6},{g:'1',n:8},{g:'2',n:8},{g:'3',n:12},{g:'4',n:11}];
+const GNAME={ANA:'Anasınıfı','1':'1. Sınıflar','2':'2. Sınıflar','3':'3. Sınıflar','4':'4. Sınıflar'};
+const GORD={ANA:0,'1':1,'2':2,'3':3,'4':4};
+const today=()=>new Date().toLocaleDateString('sv-SE');
+const fmtD=d=>{if(!d)return'';const[a,b,c]=d.split('-');return c+'.'+b+'.'+a};
+const TL=new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',minimumFractionDigits:0,maximumFractionDigits:2});
+const money=n=>TL.format(Math.round((+n||0)*100)/100);
+const int=n=>new Intl.NumberFormat('tr-TR').format(n||0);
+const pnum=v=>{if(v==null)return 0;v=String(v).trim().replace(/\s/g,'').replace(/₺/g,'');if(/,\d{1,2}$/.test(v))v=v.replace(/\./g,'').replace(',','.');else v=v.replace(/,/g,'');const n=parseFloat(v);return isFinite(n)?n:0};
+const lab=c=>c.label||((c.grade==='ANA'?'Anasınıfı ':c.grade+'-')+c.section);
+const mkLabel=(g,s)=>(g==='ANA'?'Anasınıfı ':g+'-')+s;
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const uid=p=>p+'-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const schoolYear=d=>{if(!d)return'';const y=+d.slice(0,4),m=+d.slice(5,7);return m>=9?`${y}-${y+1}`:`${y-1}-${y}`};
+const slug=s=>(s||'').toLocaleLowerCase('tr-TR').replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function defaultClasses(){const out=[];for(const G of GRADES)SEC.slice(0,G.n).forEach((s,i)=>out.push({id:'c-'+G.g.toLowerCase()+'-'+String(i+1).padStart(2,'0'),grade:G.g,section:s,label:mkLabel(G.g,s),order:i+1}));return out}
+function sortClasses(a){return (a||[]).slice().sort((x,y)=>(GORD[x.grade]??9)-(GORD[y.grade]??9)||(x.order??0)-(y.order??0)||lab(x).localeCompare(lab(y),'tr'))}
+
+const S={db:null,school:{schoolName:'Uluğbey İlkokulu'},tpl:null,logo:null,logoImg:null,events:[],eid:null,sales:[],salesLoaded:false,unsubSales:null,
+  loaded:{events:false},tab:'giris',tMode:'blank',entry:'paid',rMode:'event',cache:{}};
+const ev=()=>S.events.find(e=>e.id===S.eid)||null;
+const ro=()=>{const e=ev();return !e||e.status==='archived'};
+
+function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2800)}
+
+/* ---------- aggregates ---------- */
+function agg(sales,e,day){
+  const by={};let paid=0,free=0,collected=0;
+  for(const s of sales){ if(day&&day!=='all'&&s.day!==day)continue;
+    const b=by[s.classId]||(by[s.classId]={paid:0,free:0,amount:0,n:0});b.n++;
+    if(s.type==='free'){b.free+=+s.count||0;free+=+s.count||0}
+    else{b.paid+=+s.count||0;b.amount+=+s.amount||0;paid+=+s.count||0;collected+=+s.amount||0}}
+  const p=+(e&&e.price)||0,fp=+(e&&e.firmPer)||0,sp=+(e&&e.schoolPer)||0;
+  return{by,paid,free,total:paid+free,collected,expected:paid*p,firm:paid*fp,school:paid*sp};
+}
+
+/* ---------- navigation ---------- */
+const VIEWS=['giris','sinif','rapor','bilet','etk','ayar'];
+function setTab(t){if(!VIEWS.includes(t))t='giris';S.tab=t;ls.set('ul_tab',t);
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  VIEWS.forEach(k=>$('#v-'+k).hidden=k!==t);
+  if(t==='bilet')drawPreview(); if(t==='rapor'&&S.rMode==='year')renderYear(); if(t==='etk')loadEventTotals();
+  window.scrollTo(0,0);}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+$('#gearBtn').onclick=()=>setTab('ayar');
+$('#evChip').onclick=()=>setTab('etk');
+
+/* ---------- render ---------- */
+function renderAll(){renderHeader();renderGiris();renderClasses();renderReport();renderTpl();renderEvents();fillEv();
+  if(S.tab==='bilet')drawPreview();else renderTicketInfo();
+  if(S.tab==='rapor'&&S.rMode==='year')renderYear();}
+function renderHeader(){
+  const e=ev();
+  $('#evName').textContent=e?e.name:(S.loaded.events?'Etkinlik yok — Etkinlikler sekmesinden ekleyin':'Etkinlik yükleniyor…');
+  $('#evDate').textContent=e?fmtD(e.date):'';$('#evArc').hidden=!(e&&e.status==='archived');
+  $('#arcBanner').hidden=!(e&&e.status==='archived');
+  const h=$('#hdrLogo');
+  if(S.logo){if(!h.querySelector('img'))h.innerHTML='<img alt="Okul logosu">';h.querySelector('img').src=S.logo}
+  const lp=$('#logoPrev');
+  if(S.logo){lp.innerHTML='<img alt="Okul logosu">';lp.querySelector('img').src=S.logo;$('#logoDel').hidden=false}
+  else{lp.textContent='Logo yok';$('#logoDel').hidden=true}
+  if(document.activeElement!==$('#cSchool'))$('#cSchool').value=S.school.schoolName||'';
+  // read-only controls
+  const r=ro();
+  document.querySelectorAll('#saleForm input,#saleForm select,#saleForm button[type=submit],#addClassForm input,#addClassForm select,#addClassForm button,#pruneBtn').forEach(el=>el.disabled=r);
+}
+function tilesHTML(a){
+  return `<div class="tile hero"><div class="k">Toplanan ücret</div><div class="v">${money(a.collected)}</div><div class="s">${int(a.paid)} ücretli · ${int(a.free)} kontenjan · ${int(a.total)} katılımcı</div></div>
+  <div class="tile"><div class="k">Firma payı</div><div class="v">${money(a.firm)}</div></div>
+  <div class="tile"><div class="k">Okul payı</div><div class="v">${money(a.school)}</div></div>`;
+}
+function setEntry(m){S.entry=m;document.querySelectorAll('#entryMode button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  const free=m==='free';$('#sAmountWrap').hidden=free;$('#freeNote').hidden=!free;
+  $('#sCountLbl').textContent=free?'Kontenjan öğrenci sayısı':'Ücretli öğrenci sayısı';
+  $('#sSave').textContent=free?'Kontenjanı kaydet':'Kaydet';$('#sSave').className='btn block'+(free?' brass':'');updateAmountHint()}
+$('#entryMode').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setEntry(b.dataset.m)});
+
+function renderGiris(){
+  const e=ev();const a=agg(S.sales,e,'all');
+  $('#girisTiles').innerHTML=e?tilesHTML(a):'';
+  const sel=$('#sClass'),cur=sel.value;const cls=sortClasses(e&&e.classes);
+  if(!e){sel.innerHTML='<option value="">Önce bir etkinlik oluşturun</option>'}
+  else if(!cls.length){sel.innerHTML='<option value="">Bu etkinlikte sınıf yok</option>'}
+  else{let h='<option value="">Sınıf seçin…</option>',g=null;
+    for(const c of cls){if(c.grade!==g){if(g!==null)h+='</optgroup>';g=c.grade;h+=`<optgroup label="${esc(GNAME[g]||g)}">`}
+      const b=a.by[c.id];h+=`<option value="${esc(c.id)}">${esc(lab(c))}${b?` · ${b.paid}${b.free?' + '+b.free+' K':''}`:''}</option>`}
+    sel.innerHTML=h+'</optgroup>';if(cur&&cls.some(c=>c.id===cur))sel.value=cur;}
+  updateAmountHint();
+  const list=S.sales.slice().sort((x,y)=>(y.at||0)-(x.at||0));
+  const cmap=Object.fromEntries(((e&&e.classes)||[]).map(c=>[c.id,c]));
+  $('#recentInfo').textContent=list.length?`${list.length} kayıt`:'';
+  const r=$('#recent');
+  if(!e){r.innerHTML='<div class="empty"><b>Etkinlik seçilmedi</b>Etkinlikler sekmesinden bir etkinlik oluşturun ya da seçin.</div>';return}
+  if(!S.salesLoaded){r.innerHTML='<div class="empty">Kayıtlar yükleniyor…</div>';return}
+  if(!list.length){r.innerHTML='<div class="empty"><b>Henüz giriş yok</b>Sınıf seçip öğrenci sayısını girdiğinizde kayıtlar burada listelenir.</div>';return}
+  r.innerHTML=list.slice(0,40).map(s=>{const c=cmap[s.classId];const t=new Date(s.at||0);const free=s.type==='free';
+    const time=t.toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit'})+' '+t.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="li"><div class="main"><div class="t">${esc(c?lab(c):(s.classLabel||'Silinmiş sınıf'))} <span class="pill${free?' free':''}">${int(s.count)} ${free?'kontenjan':'ücretli'}</span></div>
+    <div class="m">${time}${s.by?' · '+esc(s.by):''}${s.note?' · '+esc(s.note):''}</div></div>
+    <div class="num"><b>${free?'—':money(s.amount)}</b></div>
+    ${ro()?'':`<button class="btn warn sm" type="button" data-del-sale="${esc(s.id)}">Sil</button>`}</div>`}).join('')+(list.length>40?`<p class="hint">İlk 40 kayıt gösteriliyor. Tamamı Rapor sekmesinde.</p>`:'');
+}
+function updateAmountHint(){
+  const e=ev();const n=parseInt($('#sCount').value)||0,p=+(e&&e.price)||0;const h=$('#sHint');
+  if(S.entry==='free'){h.textContent='';return}
+  $('#sAmount').placeholder=p&&n?money(n*p)+' (otomatik)':'Otomatik';
+  h.textContent=e&&!p?'Bu etkinliğin ücreti girilmemiş. Etkinlikler sekmesinden ücreti girin ya da tutarı elle yazın.':(n&&p?`${n} × ${money(p)} = ${money(n*p)}`:'');
+  h.className='hint'+(e&&!p?' bad':'');
+}
+
+/* class editor (event list or school template) */
+function classGroupsHTML(list,a,kind){
+  const groups={};for(const c of sortClasses(list))(groups[c.grade]||(groups[c.grade]=[])).push(c);
+  const r=kind==='ev'&&ro();
+  return Object.keys(groups).sort((x,y)=>(GORD[x]??9)-(GORD[y]??9)).map(g=>{
+    const cs=groups[g];let tp=0,tf=0,ta=0;if(a)cs.forEach(c=>{const b=a.by[c.id];if(b){tp+=b.paid;tf+=b.free;ta+=b.amount}});
+    return `<div class="${kind==='ev'?'card':''}"><div class="grade-h"><h3>${esc(GNAME[g]||g)}</h3><span>${cs.length} şube${a?` · ${int(tp)} ücretli${tf?' · '+int(tf)+' kontenjan':''} · ${money(ta)}`:''}</span></div>
+    <div class="list">${cs.map(c=>{const b=a&&a.by[c.id];return `<div class="li" data-kind="${kind}" data-cid="${esc(c.id)}">
+      <div class="main"><div class="t">${esc(lab(c))}</div></div>
+      ${a?(b?`<span class="pill">${int(b.paid)} ücretli</span>${b.free?`<span class="pill free">${int(b.free)} K</span>`:''}<span class="num" style="min-width:70px">${money(b.amount)}</span>`:'<span class="pill zero">öğrenci yok</span>'):''}
+      ${r?'':`<button class="btn ghost sm" type="button" data-edit="${esc(c.id)}">Düzelt</button><button class="btn warn sm" type="button" data-delc="${esc(c.id)}">Sil</button>`}</div>`}).join('')}</div></div>`}).join('');
+}
+function renderClasses(){
+  const box=$('#classGroups');const e=ev();
+  if(!S.loaded.events){box.innerHTML='<div class="card empty">Sınıflar yükleniyor…</div>';return}
+  if(!e){box.innerHTML='<div class="card empty"><b>Etkinlik yok</b>Etkinlikler sekmesinden yeni bir etkinlik oluşturun.</div>';return}
+  if(!(e.classes||[]).length){box.innerHTML=`<div class="card empty"><b>Bu etkinlikte sınıf yok</b>Okulun şube listesinden yükleyebilirsiniz.${ro()?'':'<div style="margin-top:12px"><button class="btn" type="button" id="loadTplBtn">Şube listesini yükle</button></div>'}</div>`;
+    const b=$('#loadTplBtn');if(b)b.onclick=()=>saveEvClasses(tplList().map(c=>({...c})),'Şube listesi yüklendi');return}
+  box.innerHTML=classGroupsHTML(e.classes,agg(S.sales,e,'all'),'ev');
+}
+function tplList(){return S.tpl&&S.tpl.length?S.tpl:defaultClasses()}
+function renderTpl(){const l=tplList();$('#tplCount').textContent=l.length+' şube';$('#tplList').innerHTML=classGroupsHTML(l,null,'tpl')}
+
+function renderReport(){
+  const e=ev();const sel=$('#rDay'),cur=sel.value||'all';
+  const days=[...new Set(S.sales.map(s=>s.day).filter(Boolean))].sort().reverse();
+  sel.innerHTML='<option value="all">Tüm günler</option>'+days.map(d=>`<option value="${d}">${fmtD(d)}${d===today()?' (bugün)':''}</option>`).join('');
+  sel.value=(cur==='all'||days.includes(cur))?cur:'all';
+  if(!e){$('#rTiles').innerHTML='';$('#rTable').innerHTML='<div class="empty"><b>Etkinlik yok</b></div>';return}
+  const a=agg(S.sales,e,sel.value);
+  const diff=a.collected-a.expected;
+  $('#rTiles').innerHTML=tilesHTML(a)+`
+   <div class="tile"><div class="k">Ücretli öğrenci</div><div class="v">${int(a.paid)}</div><div class="s">beklenen ${money(a.expected)}</div></div>
+   <div class="tile free"><div class="k">Kontenjan</div><div class="v">${int(a.free)}</div><div class="s" style="color:inherit">ücrete yansımaz</div></div>
+   <div class="tile"><div class="k">Toplam katılım</div><div class="v">${int(a.total)}</div><div class="s">${Object.keys(a.by).length} sınıf</div></div>
+   <div class="tile"><div class="k">Fark</div><div class="v" style="color:${Math.abs(diff)<0.005?'var(--good)':'var(--bad)'}">${money(diff)}</div><div class="s">toplanan − beklenen</div></div>`;
+  const rows=eventRows(a,e);
+  if(!rows.length){$('#rTable').innerHTML='<div class="empty"><b>Kayıt yok</b>Giriş sekmesinden ücret girdikçe tablo dolar.</div>';return}
+  $('#rTable').innerHTML=`<table><thead><tr><th>Sınıf</th><th class="r">Ücretli</th><th class="r">Kont.</th><th class="r">Toplanan</th><th class="r">Firma</th><th class="r">Okul</th></tr></thead><tbody>${
+    rows.map(r=>`<tr class="${r.type==='sub'?'sub':r.type==='tot'?'tot':''}"><td>${esc(r.name)}</td><td class="r">${int(r.paid)}</td><td class="r">${int(r.free)}</td><td class="r">${money(r.amount)}</td><td class="r">${money(r.firm)}</td><td class="r">${money(r.school)}</td></tr>`).join('')}</tbody></table>`;
+}
+function eventRows(a,e){
+  const fp=+e.firmPer||0,sp=+e.schoolPer||0;const rows=[];const groups={};const cls=e.classes||[];
+  for(const cl of sortClasses(cls)){const b=a.by[cl.id];if(!b)continue;(groups[cl.grade]||(groups[cl.grade]=[])).push({cl,b})}
+  const orphan=Object.keys(a.by).filter(id=>!cls.some(c=>c.id===id));
+  const mk=(name,b,type)=>({type,name,paid:b.paid,free:b.free,amount:b.amount,firm:b.paid*fp,school:b.paid*sp});
+  for(const g of Object.keys(groups).sort((x,y)=>(GORD[x]??9)-(GORD[y]??9))){const t={paid:0,free:0,amount:0};
+    for(const{cl,b}of groups[g]){rows.push(mk(lab(cl),b,'row'));t.paid+=b.paid;t.free+=b.free;t.amount+=b.amount}
+    rows.push(mk((GNAME[g]||g)+' toplamı',t,'sub'))}
+  for(const id of orphan)rows.push(mk('Silinmiş sınıf',a.by[id],'row'));
+  if(rows.length)rows.push({type:'tot',name:'GENEL TOPLAM',paid:a.paid,free:a.free,amount:a.collected,firm:a.firm,school:a.school});
+  return rows;
+}
+$('#rDay').addEventListener('change',renderReport);
+$('#rMode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.rMode=b.dataset.m;
+  document.querySelectorAll('#rMode button').forEach(x=>x.classList.toggle('on',x===b));
+  $('#rEvent').hidden=S.rMode!=='event';$('#rYear').hidden=S.rMode!=='year';if(S.rMode==='year')renderYear()});
+
+/* ---------- other events' sales (archive, yearly) ---------- */
+async function salesOf(eid){
+  if(eid===S.eid&&S.salesLoaded)return S.sales;
+  if(S.cache[eid])return S.cache[eid];
+  if(!S.db)return[];
+  try{const q=await S.db.collection('events/'+eid+'/sales').limit(1000).get();const r=q.docs.map(d=>({id:d.id,...d.data()}));S.cache[eid]=r;return r}catch(e){return[]}
+}
+let yearBusy=0;
+async function yearData(sy){
+  const evs=S.events.filter(e=>schoolYear(e.date)===sy).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const rows=[];const tot={paid:0,free:0,amount:0,firm:0,school:0};
+  for(const e of evs){const a=agg(await salesOf(e.id),e,'all');
+    rows.push({date:e.date,name:e.name,archived:e.status==='archived',paid:a.paid,free:a.free,amount:a.collected,firm:a.firm,school:a.school});
+    tot.paid+=a.paid;tot.free+=a.free;tot.amount+=a.collected;tot.firm+=a.firm;tot.school+=a.school}
+  return{rows,tot};
+}
+async function renderYear(){
+  const sel=$('#yYear'),cur=sel.value;
+  const years=[...new Set(S.events.map(e=>schoolYear(e.date)).filter(Boolean))].sort().reverse();
+  if(!years.length)years.push(schoolYear(today()));
+  sel.innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  sel.value=years.includes(cur)?cur:(years.includes(schoolYear(today()))?schoolYear(today()):years[0]);
+  const my=++yearBusy;$('#yTable').innerHTML='<div class="empty">Hesaplanıyor…</div>';
+  const {rows,tot}=await yearData(sel.value);if(my!==yearBusy)return;
+  $('#yTiles').innerHTML=`<div class="tile hero"><div class="k">${esc(sel.value)} toplanan</div><div class="v">${money(tot.amount)}</div><div class="s">${rows.length} etkinlik · ${int(tot.paid)} ücretli · ${int(tot.free)} kontenjan</div></div>
+   <div class="tile"><div class="k">Firma payı</div><div class="v">${money(tot.firm)}</div></div>
+   <div class="tile"><div class="k">Okul payı</div><div class="v">${money(tot.school)}</div></div>`;
+  if(!rows.length){$('#yTable').innerHTML='<div class="empty"><b>Bu yıl etkinlik yok</b></div>';return}
+  $('#yTable').innerHTML=`<table><thead><tr><th>Tarih</th><th>Etkinlik</th><th class="r">Ücretli</th><th class="r">Kont.</th><th class="r">Toplanan</th><th class="r">Firma</th><th class="r">Okul</th></tr></thead><tbody>${
+    rows.map(r=>`<tr><td class="r" style="text-align:left">${fmtD(r.date)}</td><td>${esc(r.name)}${r.archived?' <span class="pill arc">arşiv</span>':''}</td><td class="r">${int(r.paid)}</td><td class="r">${int(r.free)}</td><td class="r">${money(r.amount)}</td><td class="r">${money(r.firm)}</td><td class="r">${money(r.school)}</td></tr>`).join('')}
+    <tr class="tot"><td colspan="2">YIL TOPLAMI</td><td class="r">${int(tot.paid)}</td><td class="r">${int(tot.free)}</td><td class="r">${money(tot.amount)}</td><td class="r">${money(tot.firm)}</td><td class="r">${money(tot.school)}</td></tr></tbody></table>`;
+}
+$('#yYear').addEventListener('change',renderYear);
+
+/* ---------- events tab ---------- */
+let evDirty=false;
+function fillEv(){const e=ev();const f=['#eName','#eDate','#ePrice','#eFirm','#eSchool'];
+  if(!e){f.forEach(id=>{$(id).value='';$(id).disabled=true});['#eSave','#eArchive','#eDelete'].forEach(id=>$(id).disabled=true);$('#eHint').textContent='Henüz etkinlik yok. Aşağıdan yeni etkinlik ekleyin.';return}
+  const r=e.status==='archived';
+  if(!evDirty){$('#eName').value=e.name||'';$('#eDate').value=e.date||'';$('#ePrice').value=e.price||'';$('#eFirm').value=e.firmPer||'';$('#eSchool').value=e.schoolPer||''}
+  f.forEach(id=>$(id).disabled=r);$('#eSave').disabled=r;$('#eArchive').disabled=false;$('#eDelete').disabled=false;
+  $('#eArchive').textContent=r?'Arşivden çıkar':'Arşive al';$('#eArchive').className='btn '+(r?'ghost':'brass');
+  evHint()}
+function evHint(){const p=pnum($('#ePrice').value),f=pnum($('#eFirm').value),s=pnum($('#eSchool').value);const h=$('#eHint');
+  if(p&&(f||s)&&Math.abs(f+s-p)>0.005){h.textContent=`Firma + okul payı (${money(f+s)}) ücretten (${money(p)}) farklı.`;h.className='hint bad'}
+  else{h.textContent=p?`Ücretli öğrenci başına: firma ${money(f)}, okul ${money(s)}. Kontenjan paya yansımaz.`:'Ücreti girin; payları öğrenci başına tutar olarak yazın.';h.className='hint'}}
+['#eName','#eDate','#ePrice','#eFirm','#eSchool'].forEach(id=>$(id).addEventListener('input',()=>{evDirty=true;evHint()}));
+const totalsCache={};
+async function loadEventTotals(){for(const e of S.events){if(e.id===S.eid)continue;if(totalsCache[e.id])continue;
+  totalsCache[e.id]=agg(await salesOf(e.id),e,'all');renderEvents()}}
+function renderEvents(){
+  const box=$('#evList');
+  if(!S.loaded.events){box.innerHTML='<div class="empty">Yükleniyor…</div>';return}
+  const sorted=S.events.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  $('#evCount').textContent=sorted.length?`${sorted.filter(e=>e.status!=='archived').length} açık · ${sorted.filter(e=>e.status==='archived').length} arşiv`:'';
+  if(!sorted.length){box.innerHTML='<div class="empty"><b>Henüz etkinlik yok</b>Yukarıdan ilk etkinliği ekleyin.</div>';return}
+  const row=e=>{const cur=e.id===S.eid;const a=cur?agg(S.sales,e,'all'):totalsCache[e.id];
+    return `<div class="evrow${cur?' cur':''}"><div class="main"><div class="t">${esc(e.name)}</div>
+      <div class="m">${fmtD(e.date)}${a?` · ${int(a.paid)} ücretli · ${int(a.free)} kontenjan · ${money(a.collected)}`:''}</div></div>
+      ${e.status==='archived'?'<span class="pill arc">Arşiv</span>':''}
+      ${cur?'<span class="pill">Açık</span>':`<button class="btn ghost sm" type="button" data-open="${esc(e.id)}">Aç</button>`}</div>`};
+  const act=sorted.filter(e=>e.status!=='archived'),arc=sorted.filter(e=>e.status==='archived');
+  box.innerHTML=(act.length?act.map(row).join(''):'<p class="hint">Açık etkinlik yok.</p>')+
+    (arc.length?`<div class="grade-h" style="margin-top:14px"><h3>Arşiv</h3><span>${arc.length} etkinlik</span></div>`+arc.map(row).join(''):'');
+}
+$('#evList').addEventListener('click',e=>{const b=e.target.closest('[data-open]');if(b)selectEvent(b.dataset.open,true)});
+
+/* ---------- writes ---------- */
+function needDb(){if(!S.db){toast('Veritabanına bağlanılmadı. Giriş yapıp tekrar deneyin.');return false}return true}
+function needRw(){if(!needDb())return false;if(ro()){toast(ev()?'Etkinlik arşivde. Önce arşivden çıkarın.':'Önce bir etkinlik seçin.');return false}return true}
+function wrErr(e){
+  if(e&&e.code==='permission-denied')toast('Kayıt yetkisi yok. Çıkış yapıp PIN ile yeniden girin.');
+  else toast('Kaydedilemedi: '+((e&&e.message)||'bağlantı hatası'))}
+async function wr(fn,okMsg){try{
+  const p=Promise.resolve(fn());
+  const r=await Promise.race([p.then(()=>'ok'),new Promise(res=>setTimeout(()=>res('wait'),2500))]);
+  if(r==='wait'){p.catch(wrErr);if(okMsg)toast(okMsg+' · bağlantı gelince gönderilecek');return true}
+  if(okMsg)toast(okMsg);return true}catch(e){
+  if(e&&e.code==='permission-denied')toast('Kayıt yetkisi yok. Çıkış yapıp PIN ile yeniden girin.');
+  else if(e&&e.code==='resource-exhausted')toast('Günlük kullanım sınırı doldu: '+(e.message||''));
+  else toast('Kaydedilemedi: '+((e&&e.message)||'bağlantı hatası'));return false}}
+
+$('#saleForm').addEventListener('submit',async evt=>{evt.preventDefault();if(!needRw())return;const e=ev();
+  const cid=$('#sClass').value,n=parseInt($('#sCount').value)||0;
+  if(!cid){toast('Sınıf seçin');return} if(n<1){toast('Öğrenci sayısını girin');return}
+  const free=S.entry==='free';
+  const amt=free?0:($('#sAmount').value.trim()?pnum($('#sAmount').value):n*(+e.price||0));
+  const cl=(e.classes||[]).find(c=>c.id===cid);
+  const btn=$('#sSave');btn.disabled=true;
+  const ok=await wr(()=>S.db.collection('events/'+e.id+'/sales').doc().set({type:free?'free':'paid',classId:cid,classLabel:cl?lab(cl):'',count:n,amount:amt,note:$('#sNote').value.trim(),by:($('#devName').value||'').trim(),day:today(),at:Date.now()}),
+    `${cl?lab(cl):''}: ${n} ${free?'kontenjan':'ücretli · '+money(amt)} kaydedildi`);
+  btn.disabled=false; if(ok){$('#sCount').value='';$('#sAmount').value='';$('#sNote').value='';updateAmountHint()}
+});
+$('#sCount').addEventListener('input',updateAmountHint);
+
+function confirmTap(btn,label,run){if(btn.dataset.armed){delete btn.dataset.armed;run();return}btn.dataset.armed='1';const old=btn.textContent;btn.textContent=label;
+  setTimeout(()=>{if(btn.isConnected&&btn.dataset.armed){delete btn.dataset.armed;btn.textContent=old}},3500)}
+$('#recent').addEventListener('click',e=>{const b=e.target.closest('[data-del-sale]');if(!b||!needRw())return;
+  confirmTap(b,'Emin misiniz?',()=>wr(()=>S.db.doc('events/'+S.eid+'/sales/'+b.dataset.delSale).delete(),'Kayıt silindi'))});
+
+async function saveEvClasses(list,msg){if(!needRw())return false;return wr(()=>S.db.doc('events/'+S.eid).update({classes:list}),msg)}
+async function saveTpl(list,msg){if(!needDb())return false;return wr(()=>S.db.doc('cfg/sablon').set({classes:list,at:Date.now()}),msg)}
+function classClick(e){
+  const ed=e.target.closest('[data-edit]'),dl=e.target.closest('[data-delc]');if(!ed&&!dl)return;
+  const li=(ed||dl).closest('.li');const kind=li.dataset.kind;const id=li.dataset.cid;
+  const list=kind==='ev'?((ev()&&ev().classes)||[]):tplList();const save=kind==='ev'?saveEvClasses:saveTpl;
+  const c=list.find(x=>x.id===id);if(!c)return;
+  if(ed){li.innerHTML=`<form class="inline-edit"><input value="${esc(lab(c))}" maxlength="30" aria-label="Sınıf adı"><button class="btn sm" type="submit">Kaydet</button><button class="btn ghost sm" type="button" data-cancel>Vazgeç</button></form>`;
+    const f=li.querySelector('form'),inp=f.querySelector('input');inp.focus();inp.select();
+    f.querySelector('[data-cancel]').onclick=()=>{renderClasses();renderTpl()};
+    f.onsubmit=ev2=>{ev2.preventDefault();const v=inp.value.trim();if(!v){toast('Sınıf adı boş olamaz');return}
+      save(list.map(x=>x.id===id?{...x,label:v}:x),'Sınıf adı güncellendi')};return}
+  if(kind==='ev'){const b=agg(S.sales,ev(),'all').by[id];if(b){toast(`Bu sınıfın ${b.n} girişi var. Önce Giriş sekmesinden kayıtları silin.`);return}}
+  confirmTap(dl,'Sil?',()=>save(list.filter(x=>x.id!==id),'Sınıf silindi'));
+}
+$('#classGroups').addEventListener('click',classClick);$('#tplList').addEventListener('click',classClick);
+function newClass(list,g,s){const ord=list.filter(c=>c.grade===g).reduce((m,c)=>Math.max(m,c.order||0),0)+1;return{id:uid('c'),grade:g,section:s,label:mkLabel(g,s),order:ord}}
+$('#addClassForm').addEventListener('submit',async evt=>{evt.preventDefault();if(!needRw())return;
+  const g=$('#acGrade').value,s=$('#acSec').value.trim().toLocaleUpperCase('tr-TR');if(!s)return;const list=ev().classes||[];
+  if(await saveEvClasses([...list,newClass(list,g,s)],'Sınıf eklendi'))$('#acSec').value=''});
+$('#tplAddForm').addEventListener('submit',async evt=>{evt.preventDefault();
+  const g=$('#tGrade').value,s=$('#tSec').value.trim().toLocaleUpperCase('tr-TR');if(!s)return;const list=tplList();
+  if(await saveTpl([...list,newClass(list,g,s)],'Şube listeye eklendi'))$('#tSec').value=''});
+$('#pruneBtn').addEventListener('click',e=>{if(!needRw())return;const a=agg(S.sales,ev(),'all');const list=ev().classes||[];const empty=list.filter(c=>!a.by[c.id]);
+  if(!empty.length){toast('Kaldırılacak boş sınıf yok');return}
+  $('#pruneHint').textContent=`${empty.length} sınıfın kaydı yok: ${empty.map(lab).join(', ')}`;
+  confirmTap(e.currentTarget,`${empty.length} sınıfı kaldır — onayla`,async()=>{
+    if(await saveEvClasses(list.filter(c=>a.by[c.id]),`${empty.length} boş sınıf kaldırıldı`))$('#pruneHint').textContent='Silme ve kaldırma yalnızca bu etkinliği etkiler. Okulun şube listesi Ayarlar\'da durur.'})});
+
+$('#evForm').addEventListener('submit',async evt=>{evt.preventDefault();if(!needRw())return;
+  const name=$('#eName').value.trim();if(!name){toast('Etkinlik adı boş olamaz');return}
+  if(await wr(()=>S.db.doc('events/'+S.eid).update({name,date:$('#eDate').value||today(),price:pnum($('#ePrice').value),firmPer:pnum($('#eFirm').value),schoolPer:pnum($('#eSchool').value)}),'Etkinlik kaydedildi'))evDirty=false});
+$('#eArchive').addEventListener('click',e=>{if(!needDb())return;const x=ev();if(!x)return;const arc=x.status==='archived';
+  confirmTap(e.currentTarget,arc?'Arşivden çıkarılsın mı?':'Arşive alınsın mı?',()=>wr(()=>S.db.doc('events/'+x.id).update({status:arc?'active':'archived',archivedAt:arc?null:Date.now()}),arc?'Etkinlik arşivden çıkarıldı':'Etkinlik arşive alındı'))});
+$('#eDelete').addEventListener('click',e=>{if(!needDb())return;const x=ev();if(!x)return;
+  if(S.sales.length){toast(`Bu etkinliğin ${S.sales.length} girişi var. Silmek yerine arşive alın.`);return}
+  confirmTap(e.currentTarget,'Kalıcı olarak silinsin mi?',async()=>{if(await wr(()=>S.db.doc('events/'+x.id).delete(),'Etkinlik silindi')){S.eid=null;ls.set('ul_eid','')}})});
+$('#newEvForm').addEventListener('submit',async evt=>{evt.preventDefault();if(!needDb())return;
+  const name=$('#nName').value.trim();if(!name){toast('Etkinlik adı yazın');return}
+  const id=uid('ev');const doc={name,date:$('#nDate').value||today(),price:pnum($('#nPrice').value),firmPer:pnum($('#nFirm').value),schoolPer:pnum($('#nSchool').value),
+    status:'active',createdAt:Date.now(),classes:tplList().map(c=>({...c}))};
+  if(await wr(()=>S.db.doc('events/'+id).set(doc),'Etkinlik oluşturuldu')){['#nName','#nPrice','#nFirm','#nSchool'].forEach(i=>$(i).value='');$('#nDate').value=today();
+    $('#newEvDetails').open=false;pendingSelect=id;selectEvent(id,false)}});
+$('#nDate').value=today();
+
+$('#schoolForm').addEventListener('submit',async evt=>{evt.preventDefault();if(!needDb())return;
+  const n=$('#cSchool').value.trim()||'Uluğbey İlkokulu';await wr(()=>S.db.doc('cfg/main').set({schoolName:n}),'Okul adı kaydedildi')});
+$('#devName').value=ls.get('ul_dev')||'';$('#devName').addEventListener('input',e=>ls.set('ul_dev',e.target.value));
+
+$('#logoFile').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f||!needDb())return;
+  try{const url=await shrink(f);await wr(()=>S.db.doc('cfg/logo').set({dataUrl:url,at:Date.now()}),'Logo yüklendi')}catch(err){toast('Logo okunamadı: '+err.message)}});
+$('#logoDel').addEventListener('click',e=>{if(!needDb())return;confirmTap(e.currentTarget,'Kaldırılsın mı?',()=>wr(()=>S.db.doc('cfg/logo').delete(),'Logo kaldırıldı'))});
+function shrink(file){return new Promise((res,rej)=>{const r=new FileReader();r.onerror=()=>rej(new Error('dosya açılamadı'));
+  r.onload=()=>{const im=new Image();im.onerror=()=>rej(new Error('görsel tanınmadı'));im.onload=()=>{
+    let size=420,out;for(let k=0;k<4;k++){const sc=Math.min(1,size/Math.max(im.width,im.height));const cv=document.createElement('canvas');
+      cv.width=Math.max(1,Math.round(im.width*sc));cv.height=Math.max(1,Math.round(im.height*sc));cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
+      out=cv.toDataURL('image/png');if(out.length<200000)break;size=Math.round(size*0.75)}res(out)};im.src=r.result};r.readAsDataURL(file)})}
+
+/* ---------- canvas drawing (PDF) ---------- */
+const MM=10;const PW=210*MM,PH=297*MM;
+const INK='#141932',NAVY='#2B3A9E',BRASS='#A87A1F',GREY='#6B7290',RULE='#C9CDE0';
+function fit(ctx,text,maxW,size,weight,family){let s=size;do{ctx.font=`${weight} ${s}px ${family}`;if(ctx.measureText(text).width<=maxW)break;s-=1}while(s>8);return s}
+function wrap2(ctx,text,maxW,size,weight,family){
+  ctx.font=`${weight} ${size}px ${family}`;if(ctx.measureText(text).width<=maxW)return[text];
+  const w=text.split(/\s+/);let best=null;
+  for(let i=1;i<w.length;i++){const a=w.slice(0,i).join(' '),b=w.slice(i).join(' ');const m=Math.max(ctx.measureText(a).width,ctx.measureText(b).width);if(!best||m<best.m)best={a,b,m}}
+  return best?[best.a,best.b]:[text];
+}
+async function fontsReady(){try{await Promise.all(['700 40px Unbounded','500 40px Unbounded','700 40px Figtree','600 40px Figtree','400 40px Figtree'].map(f=>document.fonts.load(f)))}catch(e){}}
+function getLogoImg(){return new Promise(r=>{if(!S.logo)return r(null);if(S.logoImg&&S.logoImg._src===S.logo)return r(S.logoImg);
+  const im=new Image();im.onload=()=>{im._src=S.logo;S.logoImg=im;r(im)};im.onerror=()=>r(null);im.src=S.logo})}
+function drawLogo(ctx,im,x,y,box){const sc=Math.min(box/im.width,box/im.height);const w=im.width*sc,h=im.height*sc;ctx.drawImage(im,x+(box-w)/2,y+(box-h)/2,w,h)}
+function rrect(ctx,x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h)}
+
+const COLS=4,ROWS=9,MX=6*MM,MY=6*MM,TW=(PW-2*MX)/COLS,TH=(PH-2*MY)/ROWS;
+function ticketList(){
+  const e=ev();
+  if(S.tMode==='class'){if(!e)return[];const a=agg(S.sales,e,'all');const out=[];
+    for(const c of sortClasses(e.classes)){const b=a.by[c.id];if(!b)continue;let k=1;
+      for(let i=0;i<b.paid;i++)out.push({cls:lab(c),no:k++});for(let i=0;i<b.free;i++)out.push({cls:lab(c),no:k++,free:true})}
+    return out}
+  const n=Math.max(1,Math.min(3600,parseInt($('#tCount').value)||36)),st=Math.max(1,parseInt($('#tStart').value)||1);
+  return Array.from({length:n},(_,i)=>({no:st+i}));
+}
+function drawTicket(ctx,x,y,t,logo){
+  const e=ev()||{},school=S.school.schoolName||'',pad=2.4*MM,stubW=11*MM;
+  ctx.save();ctx.strokeStyle=NAVY;ctx.lineWidth=0.3*MM;
+  const fx=x+1.6*MM,fy=y+1.6*MM,fw=TW-3.2*MM,fh=TH-3.2*MM;
+  rrect(ctx,fx,fy,fw,fh,1.6*MM);ctx.stroke();
+  const sx=fx+fw-stubW;ctx.setLineDash([0.8*MM,0.8*MM]);ctx.lineWidth=0.22*MM;ctx.beginPath();ctx.moveTo(sx,fy+1.2*MM);ctx.lineTo(sx,fy+fh-1.2*MM);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=BRASS;ctx.fillRect(fx+pad,fy+fh-pad-6.7*MM,6*MM,0.45*MM);
+  let tx=fx+pad;const top=fy+pad;
+  if(logo){drawLogo(ctx,logo,tx,top,8.6*MM);tx+=10*MM}
+  const mainW=sx-tx-1.5*MM;
+  ctx.fillStyle=GREY;ctx.textBaseline='top';const SN=school.toLocaleUpperCase('tr-TR');
+  fit(ctx,SN,mainW,2.3*MM,700,'Figtree');ctx.fillText(SN,tx,top+0.3*MM);
+  ctx.fillStyle=INK;const name=e.name||'';
+  const lines=wrap2(ctx,name,mainW,3.4*MM,700,'Unbounded');let fs=3.4*MM;
+  for(const ln of lines)fs=Math.min(fs,fit(ctx,ln,mainW,3.4*MM,700,'Unbounded'));
+  ctx.font=`700 ${fs}px Unbounded`;lines.forEach((ln,i)=>ctx.fillText(ln,tx,top+3.3*MM+i*fs*1.18));
+  const by=fy+fh-pad-4.4*MM;
+  ctx.fillStyle=GREY;ctx.font=`600 ${2.3*MM}px Figtree`;ctx.fillText('Tarih',fx+pad,by-0.1*MM);
+  ctx.fillStyle=INK;ctx.font=`700 ${3*MM}px Figtree`;ctx.fillText(fmtD(e.date),fx+pad,by+2.2*MM);
+  const p=+e.price||0;ctx.textAlign='right';
+  if(t.cls){ctx.fillStyle=GREY;ctx.font=`600 ${2.3*MM}px Figtree`;ctx.fillText(t.free?'Sınıf · Kontenjan':'Sınıf',sx-1.5*MM,by-0.1*MM);
+    ctx.fillStyle=t.free?BRASS:NAVY;fit(ctx,t.cls,sx-fx-pad-17*MM,3*MM,700,'Figtree');ctx.fillText(t.cls,sx-1.5*MM,by+2.2*MM)}
+  else if(p){ctx.fillStyle=GREY;ctx.font=`600 ${2.3*MM}px Figtree`;ctx.fillText('Ücret',sx-1.5*MM,by-0.1*MM);
+    ctx.fillStyle=BRASS;ctx.font=`700 ${3.2*MM}px Figtree`;ctx.fillText(money(p),sx-1.5*MM,by+2*MM)}
+  ctx.textAlign='left';
+  ctx.translate(sx+stubW/2,fy+fh/2);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle=GREY;ctx.font=`700 ${2.1*MM}px Figtree`;ctx.fillText('BİLET NO',0,-2.6*MM);
+  ctx.fillStyle=NAVY;const no=String(t.no).padStart(t.cls?2:4,'0');fit(ctx,no,fh-6*MM,4.2*MM,700,'Unbounded');ctx.fillText(no,0,1.6*MM);
+  ctx.restore();
+}
+function drawCutGuides(ctx){
+  ctx.save();ctx.strokeStyle='#9AA0BC';ctx.lineWidth=0.18*MM;ctx.setLineDash([1.6*MM,1.2*MM]);
+  for(let c=0;c<=COLS;c++){const x=MX+c*TW;ctx.beginPath();ctx.moveTo(x,2*MM);ctx.lineTo(x,PH-2*MM);ctx.stroke()}
+  for(let r=0;r<=ROWS;r++){const y=MY+r*TH;ctx.beginPath();ctx.moveTo(2*MM,y);ctx.lineTo(PW-2*MM,y);ctx.stroke()}
+  ctx.setLineDash([]);ctx.fillStyle='#6B7290';ctx.font=`${3.2*MM}px system-ui, "Segoe UI Symbol", sans-serif`;ctx.textBaseline='middle';
+  for(let r=1;r<ROWS;r++)ctx.fillText('✂',0.3*MM,MY+r*TH);
+  ctx.restore();
+}
+async function ticketPages(list,limitPages){
+  await fontsReady();const logo=await getLogoImg();const pages=[];const per=COLS*ROWS;const total=Math.ceil(list.length/per);
+  for(let p=0;p<Math.min(total,limitPages||total);p++){
+    const cv=document.createElement('canvas');cv.width=PW;cv.height=PH;const ctx=cv.getContext('2d');
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,PW,PH);drawCutGuides(ctx);
+    list.slice(p*per,(p+1)*per).forEach((t,i)=>drawTicket(ctx,MX+(i%COLS)*TW,MY+Math.floor(i/COLS)*TH,t,logo));
+    pages.push(cv)}
+  return pages;
+}
+function renderTicketInfo(){
+  const list=ticketList();const pages=Math.ceil(list.length/36);
+  let t=`${int(list.length)} bilet · ${pages} A4 sayfa (sayfa başına 36 bilet, 4×9). Kesme çizgileri kesikli.`;
+  if(S.tMode==='class'){if(!list.length)t='Henüz giriş yok. Ücretli ve kontenjan girişleri yapıldıkça sınıf adlı biletler üretilir.';else t+=' Kontenjan biletlerinde sınıf adı sarı yazılır.'}
+  if(!S.logo)t+=' Okul logosu henüz yüklenmedi: sağ üstteki ayarlardan yükleyin.';
+  $('#tInfo').textContent=t;$('#tBlankOpts').hidden=S.tMode!=='blank';
+}
+let prevBusy=false;
+async function drawPreview(){renderTicketInfo();if(prevBusy)return;prevBusy=true;
+  try{let list=ticketList();if(!list.length)list=[{no:1}];const [pg]=await ticketPages(list,1);const cv=$('#tPrev'),ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(pg,0,0,cv.width,cv.height)}finally{prevBusy=false}}
+$('#tMode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.tMode=b.dataset.m;
+  document.querySelectorAll('#tMode button').forEach(x=>x.classList.toggle('on',x===b));drawPreview()});
+['#tCount','#tStart'].forEach(id=>$(id).addEventListener('input',()=>{clearTimeout(drawPreview._t);drawPreview._t=setTimeout(drawPreview,300)}));
+
+async function savePdf(name,canvases){
+  const {jsPDF}=window.jspdf||{};if(!jsPDF){toast('PDF aracı yüklenemedi. İnternet bağlantısını kontrol edin.');return}
+  const doc=new jsPDF({unit:'mm',format:'a4',orientation:'portrait',compress:true});
+  canvases.forEach((cv,i)=>{if(i)doc.addPage();doc.addImage(cv.toDataURL('image/jpeg',0.9),'JPEG',0,0,210,297,undefined,'FAST')});
+  const blob=doc.output('blob');
+  const standaloneIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)&&(navigator.standalone||matchMedia('(display-mode: standalone)').matches);
+  try{
+    const file=new File([blob],name,{type:'application/pdf'});
+    if(standaloneIOS&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}
+  }catch(e){if(e&&e.name==='AbortError')return}
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);toast('PDF indirildi: '+name);
+}
+async function busy(btn,label,fn){btn.disabled=true;const old=btn.textContent;btn.textContent=label;try{await fn()}finally{btn.disabled=false;btn.textContent=old}}
+$('#tPdf').addEventListener('click',e=>{const list=ticketList();if(!list.length){toast('Üretilecek bilet yok');return}
+  busy(e.currentTarget,'Hazırlanıyor…',async()=>savePdf(`bilet-${slug(ev()&&ev().name)}-${(ev()&&ev().date)||today()}.pdf`,await ticketPages(list)))});
+
+/* generic report PDF */
+async function reportPDF(spec){
+  await fontsReady();const logo=await getLogoImg();const pages=[];let ctx,y;const L=14*MM,R=PW-14*MM;
+  function page(){const cv=document.createElement('canvas');cv.width=PW;cv.height=PH;ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,PW,PH);ctx.textBaseline='alphabetic';pages.push(cv);
+    let x=L;if(logo){drawLogo(ctx,logo,L,12*MM,20*MM);x=L+24*MM}
+    ctx.fillStyle=GREY;ctx.font=`700 ${3.4*MM}px Figtree`;ctx.fillText((S.school.schoolName||'').toLocaleUpperCase('tr-TR'),x,17*MM);
+    ctx.fillStyle=INK;fit(ctx,spec.title,R-x,7*MM,700,'Unbounded');ctx.fillText(spec.title,x,25.5*MM);
+    ctx.fillStyle=NAVY;fit(ctx,spec.subtitle,R-x,3.6*MM,600,'Figtree');ctx.fillText(spec.subtitle,x,31.5*MM);
+    ctx.fillStyle=BRASS;ctx.fillRect(L,36*MM,R-L,0.6*MM);
+    ctx.fillStyle=GREY;ctx.font=`400 ${2.8*MM}px Figtree`;ctx.textAlign='right';
+    ctx.fillText('Düzenlenme: '+new Date().toLocaleString('tr-TR',{dateStyle:'short',timeStyle:'short'})+' · Sayfa '+pages.length,R,PH-8*MM);ctx.textAlign='left';
+    y=44*MM}
+  page();
+  const bw=(R-L-2*4*MM)/3,bh=19*MM;
+  spec.boxes.forEach((b,i)=>{const bx=L+(i%3)*(bw+4*MM),byy=y+Math.floor(i/3)*(bh+4*MM);const hero=i===0,free=b[2]==='free';
+    ctx.fillStyle=hero?NAVY:free?'#F6EDDA':'#F1F2F8';rrect(ctx,bx,byy,bw,bh,2*MM);ctx.fill();
+    ctx.fillStyle=hero?'#C9CFF5':free?BRASS:GREY;fit(ctx,b[0].toLocaleUpperCase('tr-TR'),bw-8*MM,2.7*MM,700,'Figtree');ctx.fillText(b[0].toLocaleUpperCase('tr-TR'),bx+4*MM,byy+6.5*MM);
+    ctx.fillStyle=hero?'#fff':free?BRASS:INK;fit(ctx,b[1],bw-8*MM,6*MM,500,'Unbounded');ctx.fillText(b[1],bx+4*MM,byy+15*MM)});
+  y+=Math.ceil(spec.boxes.length/3)*(bh+4*MM)+4*MM;
+  if(spec.note){ctx.fillStyle=GREY;fit(ctx,spec.note,R-L,3*MM,400,'Figtree');ctx.fillText(spec.note,L,y);y+=7*MM}
+  const cols=spec.cols;const tw=cols.reduce((s,x)=>s+x.w,0)*MM,scale=(R-L)/tw;const cx=[];let acc=L;cols.forEach(col=>{cx.push(acc);acc+=col.w*MM*scale});
+  const RH=7.6*MM;
+  const cell=(i,txt)=>{const w=cols[i].w*MM*scale;if(cols[i].r){ctx.textAlign='right';ctx.fillText(txt,cx[i]+w-2.2*MM,y+5.3*MM)}else{ctx.textAlign='left';const s=ctx.font;ctx.save();ctx.beginPath();ctx.rect(cx[i],y,w-1*MM,RH);ctx.clip();ctx.fillText(txt,cx[i]+2.2*MM,y+5.3*MM);ctx.restore();ctx.font=s}};
+  function head(){ctx.fillStyle=NAVY;ctx.fillRect(L,y,R-L,RH);ctx.fillStyle='#fff';ctx.font=`700 ${2.9*MM}px Figtree`;cols.forEach((c,i)=>cell(i,c.t));ctx.textAlign='left';y+=RH}
+  if(!spec.rows.length){ctx.fillStyle=GREY;ctx.font=`600 ${3.6*MM}px Figtree`;ctx.fillText('Bu dönem için kayıt yok.',L,y+6*MM);y+=12*MM}
+  else{head();
+    for(const r of spec.rows){if(y+RH>PH-40*MM){page();head()}
+      if(r.type==='sub'){ctx.fillStyle='#E6E8F7';ctx.fillRect(L,y,R-L,RH)}
+      if(r.type==='tot'){ctx.fillStyle=INK;ctx.fillRect(L,y,R-L,0.5*MM)}
+      ctx.fillStyle=INK;ctx.font=`${r.type==='row'?400:700} ${3.1*MM}px Figtree`;
+      r.vals.forEach((v,i)=>cell(i,v));
+      ctx.textAlign='left';ctx.strokeStyle=RULE;ctx.lineWidth=0.15*MM;ctx.beginPath();ctx.moveTo(L,y+RH);ctx.lineTo(R,y+RH);ctx.stroke();y+=RH}}
+  if(spec.foot){y+=5*MM;ctx.fillStyle=GREY;ctx.font=`400 ${2.9*MM}px Figtree`;ctx.fillText(spec.foot,L,y)}
+  if(y+36*MM>PH-14*MM)page();
+  const sy=Math.max(y+22*MM,PH-46*MM);const sw=(R-L)/3;
+  ['Teslim Eden','Teslim Alan','Okul Müdürü'].forEach((t,i)=>{const sx=L+i*sw+sw/2;ctx.textAlign='center';
+    ctx.strokeStyle='#9AA0BC';ctx.lineWidth=0.2*MM;ctx.beginPath();ctx.moveTo(sx-24*MM,sy+12*MM);ctx.lineTo(sx+24*MM,sy+12*MM);ctx.stroke();
+    ctx.fillStyle=INK;ctx.font=`700 ${3.2*MM}px Figtree`;ctx.fillText(t,sx,sy);ctx.fillStyle=GREY;ctx.font=`400 ${2.7*MM}px Figtree`;ctx.fillText('Ad Soyad / İmza',sx,sy+17*MM)});
+  ctx.textAlign='left';
+  return pages;
+}
+$('#rPdf').addEventListener('click',e=>{const x=ev();if(!x){toast('Etkinlik seçin');return}
+  busy(e.currentTarget,'Hazırlanıyor…',async()=>{const d=$('#rDay').value;const a=agg(S.sales,x,d);
+    const rows=eventRows(a,x).map(r=>({type:r.type,vals:[r.name,int(r.paid),int(r.free),money(r.amount),money(r.firm),money(r.school)]}));
+    const empty=(x.classes||[]).filter(c=>!a.by[c.id]).length;
+    const pages=await reportPDF({title:x.name,subtitle:`Etkinlik Mali Raporu · Etkinlik tarihi ${fmtD(x.date)}${d!=='all'?' · Kayıt günü '+fmtD(d):''}${x.status==='archived'?' · Arşiv':''}`,
+      boxes:[['Toplanan ücret',money(a.collected)],['Ücretli öğrenci',int(a.paid)],['Kontenjan (ücretsiz)',int(a.free),'free'],['Firma payı',money(a.firm)],['Okul payı',money(a.school)],['Toplam katılım',int(a.total)]],
+      note:`Ücret ${money(x.price)} · Öğrenci başına firma ${money(x.firmPer)}, okul ${money(x.schoolPer)} · Beklenen ${money(a.expected)} · Fark ${money(a.collected-a.expected)} · Kontenjan ücrete ve paylara yansımaz.`,
+      cols:[{t:'Sınıf',w:46},{t:'Ücretli',w:22,r:1},{t:'Kontenjan',w:24,r:1},{t:'Toplanan',w:32,r:1},{t:'Firma payı',w:31,r:1},{t:'Okul payı',w:31,r:1}],
+      rows,foot:empty?`Kaydı olmayan ${empty} sınıf tabloya alınmamıştır.`:''});
+    await savePdf(`rapor-${slug(x.name)}-${d==='all'?(x.date||today()):d}.pdf`,pages)})});
+$('#yPdf').addEventListener('click',e=>{const sy=$('#yYear').value;if(!sy)return;
+  busy(e.currentTarget,'Hazırlanıyor…',async()=>{const {rows,tot}=await yearData(sy);
+    const vrows=rows.map(r=>({type:'row',vals:[fmtD(r.date),r.name+(r.archived?' (arşiv)':''),int(r.paid),int(r.free),money(r.amount),money(r.firm),money(r.school)]}));
+    if(rows.length)vrows.push({type:'tot',vals:['','YIL TOPLAMI',int(tot.paid),int(tot.free),money(tot.amount),money(tot.firm),money(tot.school)]});
+    const pages=await reportPDF({title:`${sy} Yıllık Etkinlik Raporu`,subtitle:`Eylül–Ağustos dönemi · ${rows.length} etkinlik`,
+      boxes:[['Toplanan ücret',money(tot.amount)],['Ücretli öğrenci',int(tot.paid)],['Kontenjan (ücretsiz)',int(tot.free),'free'],['Firma payı',money(tot.firm)],['Okul payı',money(tot.school)],['Etkinlik sayısı',int(rows.length)]],
+      note:'Kontenjan öğrencileri ücrete ve paylara yansımaz.',
+      cols:[{t:'Tarih',w:22},{t:'Etkinlik',w:52},{t:'Ücretli',w:17,r:1},{t:'Kont.',w:15,r:1},{t:'Toplanan',w:28,r:1},{t:'Firma',w:26,r:1},{t:'Okul',w:26,r:1}],rows:vrows});
+    await savePdf(`yillik-rapor-${sy}.pdf`,pages)})});
+
+/* ---------- boot ---------- */
+function setSync(on,t){$('#syncDot').classList.toggle('on',on);$('#syncTxt').textContent=t}
+function banner(t,cls){const b=$('#banner');if(!t){b.hidden=true;return}b.className='banner'+(cls?' '+cls:'');b.textContent=t;b.hidden=false}
+let pendingSelect=null;
+function selectEvent(id,announce){
+  if(S.eid===id&&S.unsubSales)return;
+  S.eid=id;ls.set('ul_eid',id||'');evDirty=false;
+  if(S.unsubSales){S.unsubSales();S.unsubSales=null}
+  S.sales=[];S.salesLoaded=false;renderAll();
+  if(!id||!S.db)return;
+  S.unsubSales=S.db.collection('events/'+id+'/sales').limit(1000).onSnapshot(q=>{S.sales=q.docs.map(d=>({id:d.id,...d.data()}));S.salesLoaded=true;S.cache[id]=S.sales;renderAll()},
+    ()=>{setSync(false,'Bağlantı koptu');banner('Canlı bağlantı kesildi. Sayfayı yenileyin.')});
+  if(announce){const e=ev();if(e)toast(`${e.name} açıldı`);setTab('giris')}
+}
+function pickDefault(){
+  const want=pendingSelect||ls.get('ul_eid');
+  if(want&&S.events.some(e=>e.id===want))return want;
+  const sorted=S.events.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const act=sorted.find(e=>e.status!=='archived');return act?act.id:(sorted[0]?sorted[0].id:null);
+}
+setTab((location.hash||'').slice(1)||ls.get('ul_tab')||'giris');setEntry('paid');renderAll();
+/* ---------- firebase ---------- */
+const FB_CONFIG={apiKey:"AIzaSyCITmvtDL9iTIR8P41NcN5dpFRdZ0PdP-Y",authDomain:"ulugbey-yonetim.firebaseapp.com",projectId:"ulugbey-yonetim",storageBucket:"ulugbey-yonetim.firebasestorage.app",messagingSenderId:"480674532984",appId:"1:480674532984:web:f5511094678b7e1bb0e78d"};
+const ACCOUNT='etkinlik@ulugbey-yonetim.app';
+let auth=null,fs=null,unsubs=[];
+if(!window.firebase){banner('Uygulama bileşenleri yüklenemedi. İnternet bağlantısını kontrol edip sayfayı yenileyin.');setSync(false,'Çevrimdışı')}
+else{
+  firebase.initializeApp(FB_CONFIG);auth=firebase.auth();fs=firebase.firestore();
+  try{fs.enablePersistence({synchronizeTabs:true}).catch(()=>{})}catch(e){}
+  auth.onAuthStateChanged(u=>{
+    if(u&&u.email===ACCOUNT){$('#login').hidden=true;startData()}
+    else{stopData();showLogin()}
+  });
+}
+function showLogin(){$('#login').hidden=false;setSync(false,'Giriş yok');setTimeout(()=>{try{$('#pin1').focus()}catch(e){}},100)}
+function stopData(){unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];if(S.unsubSales){S.unsubSales();S.unsubSales=null}S.db=null}
+let setupMode=false;
+$('#setupToggle').onclick=()=>{setupMode=!setupMode;$('#pin2').hidden=!setupMode;$('#loginErr').textContent='';
+  $('#loginSub').textContent=setupMode?'İlk kurulum: tüm telefonlarda kullanılacak en az 6 haneli PIN belirleyin.':'Devam etmek için PIN kodunu girin.';
+  $('#loginBtn').textContent=setupMode?'PIN\'i oluştur':'Giriş yap';$('#setupToggle').textContent=setupMode?'Vazgeç, giriş yap':'İlk kurulum: PIN belirle'};
+const authMsg=c=>({'auth/wrong-password':'PIN yanlış.','auth/invalid-credential':'PIN yanlış.','auth/invalid-login-credentials':'PIN yanlış.','auth/user-not-found':'Henüz PIN belirlenmemiş. "İlk kurulum" ile belirleyin.',
+  'auth/too-many-requests':'Çok fazla deneme yapıldı. Birkaç dakika bekleyin.','auth/network-request-failed':'İnternet bağlantısı yok.','auth/email-already-in-use':'PIN zaten belirlenmiş. Mevcut PIN ile giriş yapın.',
+  'auth/weak-password':'PIN en az 6 haneli olmalı.','auth/requires-recent-login':'Güvenlik için çıkış yapıp yeniden girin, sonra tekrar deneyin.'}[c]||'İşlem yapılamadı ('+c+').');
+$('#loginForm').addEventListener('submit',async ev=>{ev.preventDefault();if(!auth)return;
+  const p1=$('#pin1').value.trim(),p2=$('#pin2').value.trim();const err=$('#loginErr');err.textContent='';
+  if(p1.length<6){err.textContent='PIN en az 6 haneli olmalı.';return}
+  if(setupMode&&p1!==p2){err.textContent='İki PIN aynı değil.';return}
+  const b=$('#loginBtn');b.disabled=true;
+  try{if(setupMode)await auth.createUserWithEmailAndPassword(ACCOUNT,p1);else await auth.signInWithEmailAndPassword(ACCOUNT,p1);
+    $('#pin1').value='';$('#pin2').value=''}
+  catch(e){err.textContent=authMsg(e.code)}finally{b.disabled=false}});
+$('#pinForm').addEventListener('submit',async ev=>{ev.preventDefault();const p=$('#newPin').value.trim();
+  if(p.length<6){toast('PIN en az 6 haneli olmalı');return}
+  try{await auth.currentUser.updatePassword(p);$('#newPin').value='';toast('PIN değiştirildi')}catch(e){toast(authMsg(e.code))}});
+$('#logoutBtn').addEventListener('click',e=>confirmTap(e.currentTarget,'Çıkış yapılsın mı?',()=>auth&&auth.signOut()));
+
+async function seedIfEmpty(db){
+  try{const m=await db.doc('cfg/main').get({source:'server'});if(m.exists)return;
+    const ev=await db.collection('events').limit(1).get({source:'server'});if(!ev.empty)return;
+    const cls=defaultClasses();const b=db.batch();
+    b.set(db.doc('cfg/main'),{schoolName:'Uluğbey İlkokulu'});b.set(db.doc('cfg/sablon'),{classes:cls,at:Date.now()});
+    b.set(db.doc('events/ev-uzay-cadiri-2026'),{name:'Uzay Çadırı Etkinliği',date:'2026-10-07',price:0,firmPer:0,schoolPer:0,status:'active',createdAt:Date.now(),classes:cls});
+    await b.commit();
+  }catch(e){}
+}
+function startData(){
+  if(S.db)return;const db=fs;S.db=db;setSync(navigator.onLine,navigator.onLine?'Canlı':'Çevrimdışı');banner('');
+  const err=e=>{if(e&&e.code==='permission-denied'){banner('Bu hesabın verilere erişimi yok. Çıkış yapıp doğru PIN ile girin.')}else{setSync(false,'Bağlantı koptu')}};
+  unsubs.push(db.doc('cfg/main').onSnapshot(s=>{S.school={schoolName:'Uluğbey İlkokulu',...(s.exists?s.data():{})};renderAll()},err));
+  unsubs.push(db.doc('cfg/logo').onSnapshot(s=>{S.logo=s.exists?(s.data().dataUrl||null):null;renderAll()},err));
+  unsubs.push(db.doc('cfg/sablon').onSnapshot(s=>{S.tpl=s.exists?(s.data().classes||null):null;renderTpl()},err));
+  unsubs.push(db.collection('events').limit(500).onSnapshot(q=>{S.events=q.docs.map(d=>({id:d.id,...d.data()}));S.loaded.events=true;
+    for(const e of S.events)if(e.id!==S.eid)delete totalsCache[e.id];
+    const id=pickDefault();if(id!==S.eid||!S.unsubSales)selectEvent(id,false);else renderAll();
+    if(pendingSelect&&id===pendingSelect)pendingSelect=null;
+    if(S.tab==='etk')loadEventTotals()},err));
+  seedIfEmpty(db);
+}
+addEventListener('online',()=>{if(S.db)setSync(true,'Canlı')});
+addEventListener('offline',()=>setSync(false,'Çevrimdışı'));
+
+/* ---------- install (PWA) ---------- */
+let deferredPrompt=null;
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function renderInstall(){
+  const t=$('#installTxt'),b=$('#installBtn');
+  if(isStandalone()){t.textContent='Uygulama bu telefonda yüklü ve uygulama olarak açık.';b.hidden=true;return}
+  if(deferredPrompt){t.textContent='Uluğbey Yönetim\'i ana ekrana ekleyin; tarayıcı açmadan, uygulama gibi açılır.';b.hidden=false;return}
+  b.hidden=true;
+  t.textContent=isIOS?'iPhone\'da: Safari\'de alttaki Paylaş düğmesine dokunun, ardından "Ana Ekrana Ekle"yi seçin.':'Android\'de: Chrome menüsünden (⋮) "Uygulamayı yükle" ya da "Ana ekrana ekle"yi seçin.';
+}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;renderInstall()});
+addEventListener('appinstalled',()=>{deferredPrompt=null;toast('Uygulama yüklendi');renderInstall()});
+$('#installBtn').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();try{await deferredPrompt.userChoice}catch(e){}deferredPrompt=null;renderInstall()});
+renderInstall();
+if('serviceWorker' in navigator){
+  addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  let reloaded=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloaded)return;reloaded=true;if(navigator.serviceWorker.controller)location.reload()});
+}
+})();
+</script>
+</body>
+</html>
