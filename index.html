@@ -95,6 +95,20 @@ input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);ou
 .tile.hero .s{color:inherit;opacity:.85}
 .tile.free{background:var(--brass-soft);border-color:transparent}
 .tile.free .k,.tile.free .v{color:var(--brass)}
+.tile.out .v{color:var(--bad)}
+.tile.inc .v{color:var(--good)}
+.tile.bal{grid-column:1/-1;background:var(--good-soft);border-color:transparent}
+.tile.bal .k,.tile.bal .v{color:var(--good)}
+.tile.bal.neg{background:var(--bad-soft)}
+.tile.bal.neg .k,.tile.bal.neg .v{color:var(--bad)}
+.seg.kasa button.on[data-k="expense"]{color:var(--bad)}
+.seg.kasa button.on[data-k="income"]{color:var(--good)}
+.amt-out{color:var(--bad)}
+.amt-in{color:var(--good)}
+.pill.out{background:var(--bad-soft);color:var(--bad)}
+.pill.inc{background:var(--good-soft);color:var(--good)}
+.btn.good{background:var(--good);color:var(--surface)}
+.btn.bad{background:var(--bad);color:var(--surface)}
 .list{display:flex;flex-direction:column}
 .li{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
 .li:first-child{border-top:0}
@@ -267,6 +281,22 @@ details.sub-card[open] summary{margin-bottom:12px}
       <div class="grade-h"><h3>Son girişler</h3><span id="recentInfo"></span></div>
       <div class="list" id="recent"></div>
     </div>
+    <form class="card" id="kasaForm" autocomplete="off">
+      <div class="grade-h"><h3>Masraf ve sonradan gelen ücret</h3><span id="kasaInfo"></span></div>
+      <div class="seg kasa" id="kasaMode" style="margin-bottom:14px"><button type="button" data-k="expense" class="on">Masraf</button><button type="button" data-k="income">Sonradan gelen ücret</button></div>
+      <div class="stack">
+        <label class="f"><span id="kDescLbl">Masraf açıklaması</span>
+          <input id="kDesc" type="text" list="kDescList" maxlength="80" placeholder="Örn. Çadır kurulumu için ikram">
+          <datalist id="kDescList"></datalist>
+        </label>
+        <label class="f">Tutar (₺)
+          <input id="kAmount" type="text" inputmode="decimal" placeholder="Örn. 450">
+        </label>
+        <p class="hint" id="kNote">Masraf okul bakiyesinden düşer. Firma payını etkilemez.</p>
+        <button class="btn bad block" type="submit" id="kSave">Masrafı kaydet</button>
+      </div>
+      <div class="list" id="kasaList" style="margin-top:12px"></div>
+    </form>
   </section>
 
   <!-- SINIFLAR -->
@@ -304,6 +334,7 @@ details.sub-card[open] summary{margin-bottom:12px}
       </div>
       <div class="tiles" id="rTiles"></div>
       <div class="card"><h2>Sınıf bazında</h2><div class="tw" id="rTable"></div></div>
+      <div class="card"><h2>Masraf ve sonradan gelen ücretler</h2><div class="tw" id="rKasa"></div></div>
     </div>
     <div id="rYear" class="view" hidden>
       <div class="card">
@@ -502,7 +533,7 @@ function defaultClasses(){const out=[];for(const g of ['ANA','1','2','3','4'])SC
 function sortClasses(a){return (a||[]).slice().sort((x,y)=>(GORD[x.grade]??9)-(GORD[y.grade]??9)||(x.order??0)-(y.order??0)||lab(x).localeCompare(lab(y),'tr'))}
 
 const DEFAULT_LOGO='icons/okul-logo.png';
-const S={db:null,school:{schoolName:'Uluğbey İlkokulu'},tpl:null,logo:DEFAULT_LOGO,logoCustom:false,logoImg:null,events:[],eid:null,sales:[],salesLoaded:false,unsubSales:null,
+const S={db:null,school:{schoolName:'Uluğbey İlkokulu'},tpl:null,logo:DEFAULT_LOGO,logoCustom:false,logoImg:null,events:[],eid:null,sales:[],salesLoaded:false,unsubSales:null,ledger:[],ledgerLoaded:false,unsubLedger:null,lcache:{},kmode:'expense',
   loaded:{events:false},tab:'giris',tMode:'blank',entry:'paid',rMode:'event',cache:{}};
 const ev=()=>S.events.find(e=>e.id===S.eid)||null;
 const ro=()=>{const e=ev();return !e||e.status==='archived'};
@@ -518,6 +549,13 @@ function agg(sales,e,day){
     else{b.paid+=+s.count||0;b.amount+=+s.amount||0;paid+=+s.count||0;collected+=+s.amount||0}}
   const p=+(e&&e.price)||0,fp=+(e&&e.firmPer)||0,sp=+(e&&e.schoolPer)||0;
   return{by,paid,free,total:paid+free,collected,expected:paid*p,firm:paid*fp,school:paid*sp};
+}
+
+function lagg(ledger,a,day){
+  let income=0,expense=0;const inc=[],out=[];
+  for(const x of ledger||[]){if(day&&day!=='all'&&x.day!==day)continue;
+    if(x.kind==='income'){income+=+x.amount||0;inc.push(x)}else{expense+=+x.amount||0;out.push(x)}}
+  return{income,expense,inc,out,balance:(a?a.school:0)+income-expense};
 }
 
 /* ---------- navigation ---------- */
@@ -550,10 +588,14 @@ function renderHeader(){
   const r=ro();
   document.querySelectorAll('#saleForm input,#saleForm select,#saleForm button[type=submit],#addClassForm input,#addClassForm select,#addClassForm button,#pruneBtn').forEach(el=>el.disabled=r);
 }
-function tilesHTML(a){
-  return `<div class="tile hero"><div class="k">Toplanan ücret</div><div class="v">${money(a.collected)}</div><div class="s">${int(a.paid)} ücretli · ${int(a.free)} kontenjan · ${int(a.total)} katılımcı</div></div>
+function tilesHTML(a,L){
+  let h=`<div class="tile hero"><div class="k">Toplanan ücret</div><div class="v">${money(a.collected)}</div><div class="s">${int(a.paid)} ücretli · ${int(a.free)} kontenjan · ${int(a.total)} katılımcı</div></div>
   <div class="tile"><div class="k">Firma payı</div><div class="v">${money(a.firm)}</div></div>
   <div class="tile"><div class="k">Okul payı</div><div class="v">${money(a.school)}</div></div>`;
+  if(L){h+=`<div class="tile inc"><div class="k">Sonradan gelen</div><div class="v">${money(L.income)}</div><div class="s">tamamı okula</div></div>
+  <div class="tile out"><div class="k">Masraf</div><div class="v">${L.expense?'−'+money(L.expense):money(0)}</div><div class="s">${L.out.length} kalem</div></div>
+  <div class="tile bal${L.balance<0?' neg':''}"><div class="k">Okul bakiyesi</div><div class="v">${money(L.balance)}</div><div class="s" style="color:inherit">okul payı + sonradan gelen − masraf</div></div>`}
+  return h;
 }
 function setEntry(m){S.entry=m;document.querySelectorAll('#entryMode button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
   const free=m==='free';$('#sAmountWrap').hidden=free;$('#freeNote').hidden=!free;
@@ -563,7 +605,8 @@ $('#entryMode').addEventListener('click',e=>{const b=e.target.closest('button');
 
 function renderGiris(){
   const e=ev();const a=agg(S.sales,e,'all');
-  $('#girisTiles').innerHTML=e?tilesHTML(a):'';
+  $('#girisTiles').innerHTML=e?tilesHTML(a,lagg(S.ledger,a,'all')):'';
+  renderKasa();
   const sel=$('#sClass'),cur=sel.value;const cls=sortClasses(e&&e.classes);
   if(!e){sel.innerHTML='<option value="">Önce bir etkinlik oluşturun</option>'}
   else if(!cls.length){sel.innerHTML='<option value="">Bu etkinlikte sınıf yok</option>'}
@@ -585,6 +628,46 @@ function renderGiris(){
     <div class="m">${time}${s.by?' · '+esc(s.by):''}${s.note?' · '+esc(s.note):''}</div></div>
     <div class="num"><b>${free?'—':money(s.amount)}</b></div>
     ${ro()?'':`<button class="btn warn sm" type="button" data-del-sale="${esc(s.id)}">Sil</button>`}</div>`}).join('')+(list.length>40?`<p class="hint">İlk 40 kayıt gösteriliyor. Tamamı Rapor sekmesinde.</p>`:'');
+}
+function kasaTable(L){
+  const rows=[...L.out.map(x=>({...x,k:'out'})),...L.inc.map(x=>({...x,k:'inc'}))].sort((a,b)=>(a.at||0)-(b.at||0));
+  if(!rows.length)return '<div class="empty"><b>Kayıt yok</b>Giriş sekmesinin altından masraf ya da sonradan gelen ücret ekleyebilirsiniz.</div>';
+  return `<table><thead><tr><th>Tarih</th><th>Açıklama</th><th>Tür</th><th class="r">Tutar</th></tr></thead><tbody>${
+    rows.map(x=>`<tr><td>${fmtD(x.day)}</td><td>${esc(x.desc)}</td><td>${x.k==='out'?'<span class="pill out">Masraf</span>':'<span class="pill inc">Gelir</span>'}</td><td class="r ${x.k==='out'?'amt-out':'amt-in'}">${x.k==='out'?'−':'+'}${money(x.amount)}</td></tr>`).join('')}
+    <tr class="sub"><td colspan="3">Sonradan gelen ücret toplamı</td><td class="r">+${money(L.income)}</td></tr>
+    <tr class="sub"><td colspan="3">Masraf toplamı</td><td class="r">−${money(L.expense)}</td></tr>
+    <tr class="tot"><td colspan="3">OKUL BAKİYESİ</td><td class="r">${money(L.balance)}</td></tr></tbody></table>`;
+}
+function setKasa(k){S.kmode=k;document.querySelectorAll('#kasaMode button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  const inc=k==='income';
+  $('#kDescLbl').textContent=inc?'Gelir açıklaması':'Masraf açıklaması';
+  $('#kDesc').placeholder=inc?'Örn. Geç getirilen öğrenci ücreti':'Örn. Çadır kurulumu için ikram';
+  $('#kNote').textContent=inc?'Sonradan gelen ücretin tamamı okula kalır, okul bakiyesine eklenir. Firma payına ve öğrenci sayısına yansımaz.':'Masraf okul bakiyesinden düşer. Firma payını etkilemez.';
+  $('#kSave').textContent=inc?'Geliri kaydet':'Masrafı kaydet';$('#kSave').className='btn block '+(inc?'good':'bad');
+  renderDescList()}
+$('#kasaMode').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setKasa(b.dataset.k)});
+function renderDescList(){
+  const all=[];for(const id in S.lcache)all.push(...S.lcache[id]);all.push(...S.ledger);
+  const want=S.kmode==='income'?'income':'expense';const seen=new Set();
+  const opts=all.filter(x=>(x.kind==='income'?'income':'expense')===want).sort((a,b)=>(b.at||0)-(a.at||0)).map(x=>x.desc).filter(d=>d&&!seen.has(d.toLocaleLowerCase('tr-TR'))&&seen.add(d.toLocaleLowerCase('tr-TR'))).slice(0,15);
+  $('#kDescList').innerHTML=opts.map(d=>`<option value="${esc(d)}"></option>`).join('');
+}
+function renderKasa(){
+  const e=ev();const r=ro();
+  document.querySelectorAll('#kasaForm input,#kasaForm button[type=submit]').forEach(el=>el.disabled=r);
+  renderDescList();
+  const L=lagg(S.ledger,null,'all');
+  $('#kasaInfo').textContent=(L.out.length||L.inc.length)?`−${money(L.expense)} · +${money(L.income)}`:'';
+  const box=$('#kasaList');
+  if(!e){box.innerHTML='';return}
+  if(!S.ledgerLoaded){box.innerHTML='<div class="empty">Yükleniyor…</div>';return}
+  const rows=S.ledger.slice().sort((a,b)=>(b.at||0)-(a.at||0));
+  if(!rows.length){box.innerHTML='<p class="hint">Henüz masraf ya da sonradan gelen ücret yok.</p>';return}
+  box.innerHTML=rows.map(x=>{const inc=x.kind==='income';const t=new Date(x.at||0);
+    return `<div class="li"><div class="main"><div class="t">${esc(x.desc)} <span class="pill ${inc?'inc':'out'}">${inc?'Gelir':'Masraf'}</span></div>
+    <div class="m">${t.toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit'})} ${t.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}${x.by?' · '+esc(x.by):''}</div></div>
+    <div class="num ${inc?'amt-in':'amt-out'}"><b>${inc?'+':'−'}${money(x.amount)}</b></div>
+    ${r?'':`<button class="btn warn sm" type="button" data-del-led="${esc(x.id)}">Sil</button>`}</div>`}).join('');
 }
 function updateAmountHint(){
   const e=ev();const n=parseInt($('#sCount').value)||0,p=+(e&&e.price)||0;const h=$('#sHint');
@@ -619,13 +702,15 @@ function renderTpl(){const l=tplList();$('#tplCount').textContent=l.length+' şu
 
 function renderReport(){
   const e=ev();const sel=$('#rDay'),cur=sel.value||'all';
-  const days=[...new Set(S.sales.map(s=>s.day).filter(Boolean))].sort().reverse();
+  const days=[...new Set(S.sales.concat(S.ledger).map(s=>s.day).filter(Boolean))].sort().reverse();
   sel.innerHTML='<option value="all">Tüm günler</option>'+days.map(d=>`<option value="${d}">${fmtD(d)}${d===today()?' (bugün)':''}</option>`).join('');
   sel.value=(cur==='all'||days.includes(cur))?cur:'all';
-  if(!e){$('#rTiles').innerHTML='';$('#rTable').innerHTML='<div class="empty"><b>Etkinlik yok</b></div>';return}
+  if(!e){$('#rTiles').innerHTML='';$('#rKasa').innerHTML='';$('#rTable').innerHTML='<div class="empty"><b>Etkinlik yok</b></div>';return}
   const a=agg(S.sales,e,sel.value);
   const diff=a.collected-a.expected;
-  $('#rTiles').innerHTML=tilesHTML(a)+`
+  const L=lagg(S.ledger,a,sel.value);
+  $('#rKasa').innerHTML=kasaTable(L);
+  $('#rTiles').innerHTML=tilesHTML(a,L)+`
    <div class="tile"><div class="k">Ücretli öğrenci</div><div class="v">${int(a.paid)}</div><div class="s">beklenen ${money(a.expected)}</div></div>
    <div class="tile free"><div class="k">Kontenjan</div><div class="v">${int(a.free)}</div><div class="s" style="color:inherit">ücrete yansımaz</div></div>
    <div class="tile"><div class="k">Toplam katılım</div><div class="v">${int(a.total)}</div><div class="s">${Object.keys(a.by).length} sınıf</div></div>
@@ -659,13 +744,19 @@ async function salesOf(eid){
   if(!S.db)return[];
   try{const q=await S.db.collection('events/'+eid+'/sales').limit(1000).get();const r=q.docs.map(d=>({id:d.id,...d.data()}));S.cache[eid]=r;return r}catch(e){return[]}
 }
+async function ledgerOf(eid){
+  if(eid===S.eid&&S.ledgerLoaded)return S.ledger;
+  if(S.lcache[eid])return S.lcache[eid];
+  if(!S.db)return[];
+  try{const q=await S.db.collection('events/'+eid+'/ledger').limit(1000).get();const r=q.docs.map(d=>({id:d.id,...d.data()}));S.lcache[eid]=r;return r}catch(e){return[]}
+}
 let yearBusy=0;
 async function yearData(sy){
   const evs=S.events.filter(e=>schoolYear(e.date)===sy).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-  const rows=[];const tot={paid:0,free:0,amount:0,firm:0,school:0};
-  for(const e of evs){const a=agg(await salesOf(e.id),e,'all');
-    rows.push({date:e.date,name:e.name,archived:e.status==='archived',paid:a.paid,free:a.free,amount:a.collected,firm:a.firm,school:a.school});
-    tot.paid+=a.paid;tot.free+=a.free;tot.amount+=a.collected;tot.firm+=a.firm;tot.school+=a.school}
+  const rows=[];const tot={paid:0,free:0,amount:0,firm:0,school:0,income:0,expense:0,balance:0};
+  for(const e of evs){const a=agg(await salesOf(e.id),e,'all');const L=lagg(await ledgerOf(e.id),a,'all');
+    rows.push({date:e.date,name:e.name,archived:e.status==='archived',paid:a.paid,free:a.free,amount:a.collected,firm:a.firm,school:a.school,income:L.income,expense:L.expense,balance:L.balance});
+    for(const k of Object.keys(tot))tot[k]+=rows[rows.length-1][k]}
   return{rows,tot};
 }
 async function renderYear(){
@@ -678,11 +769,14 @@ async function renderYear(){
   const {rows,tot}=await yearData(sel.value);if(my!==yearBusy)return;
   $('#yTiles').innerHTML=`<div class="tile hero"><div class="k">${esc(sel.value)} toplanan</div><div class="v">${money(tot.amount)}</div><div class="s">${rows.length} etkinlik · ${int(tot.paid)} ücretli · ${int(tot.free)} kontenjan</div></div>
    <div class="tile"><div class="k">Firma payı</div><div class="v">${money(tot.firm)}</div></div>
-   <div class="tile"><div class="k">Okul payı</div><div class="v">${money(tot.school)}</div></div>`;
+   <div class="tile"><div class="k">Okul payı</div><div class="v">${money(tot.school)}</div></div>
+   <div class="tile inc"><div class="k">Sonradan gelen</div><div class="v">${money(tot.income)}</div></div>
+   <div class="tile out"><div class="k">Masraf</div><div class="v">${tot.expense?'−'+money(tot.expense):money(0)}</div></div>
+   <div class="tile bal${tot.balance<0?' neg':''}"><div class="k">${esc(sel.value)} okul bakiyesi</div><div class="v">${money(tot.balance)}</div></div>`;
   if(!rows.length){$('#yTable').innerHTML='<div class="empty"><b>Bu yıl etkinlik yok</b></div>';return}
-  $('#yTable').innerHTML=`<table><thead><tr><th>Tarih</th><th>Etkinlik</th><th class="r">Ücretli</th><th class="r">Kont.</th><th class="r">Toplanan</th><th class="r">Firma</th><th class="r">Okul</th></tr></thead><tbody>${
-    rows.map(r=>`<tr><td class="r" style="text-align:left">${fmtD(r.date)}</td><td>${esc(r.name)}${r.archived?' <span class="pill arc">arşiv</span>':''}</td><td class="r">${int(r.paid)}</td><td class="r">${int(r.free)}</td><td class="r">${money(r.amount)}</td><td class="r">${money(r.firm)}</td><td class="r">${money(r.school)}</td></tr>`).join('')}
-    <tr class="tot"><td colspan="2">YIL TOPLAMI</td><td class="r">${int(tot.paid)}</td><td class="r">${int(tot.free)}</td><td class="r">${money(tot.amount)}</td><td class="r">${money(tot.firm)}</td><td class="r">${money(tot.school)}</td></tr></tbody></table>`;
+  $('#yTable').innerHTML=`<table><thead><tr><th>Tarih</th><th>Etkinlik</th><th class="r">Ücretli</th><th class="r">Kont.</th><th class="r">Toplanan</th><th class="r">Firma</th><th class="r">Okul</th><th class="r">Sonr. gelen</th><th class="r">Masraf</th><th class="r">Bakiye</th></tr></thead><tbody>${
+    rows.map(r=>`<tr><td class="r" style="text-align:left">${fmtD(r.date)}</td><td>${esc(r.name)}${r.archived?' <span class="pill arc">arşiv</span>':''}</td><td class="r">${int(r.paid)}</td><td class="r">${int(r.free)}</td><td class="r">${money(r.amount)}</td><td class="r">${money(r.firm)}</td><td class="r">${money(r.school)}</td><td class="r amt-in">${money(r.income)}</td><td class="r amt-out">${r.expense?'−'+money(r.expense):money(0)}</td><td class="r"><b>${money(r.balance)}</b></td></tr>`).join('')}
+    <tr class="tot"><td colspan="2">YIL TOPLAMI</td><td class="r">${int(tot.paid)}</td><td class="r">${int(tot.free)}</td><td class="r">${money(tot.amount)}</td><td class="r">${money(tot.firm)}</td><td class="r">${money(tot.school)}</td><td class="r">${money(tot.income)}</td><td class="r">${tot.expense?'−'+money(tot.expense):money(0)}</td><td class="r">${money(tot.balance)}</td></tr></tbody></table>`;
 }
 $('#yYear').addEventListener('change',renderYear);
 
@@ -820,6 +914,17 @@ $('#sCount').addEventListener('input',updateAmountHint);
 
 function confirmTap(btn,label,run){if(btn.dataset.armed){delete btn.dataset.armed;run();return}btn.dataset.armed='1';const old=btn.textContent;btn.textContent=label;
   setTimeout(()=>{if(btn.isConnected&&btn.dataset.armed){delete btn.dataset.armed;btn.textContent=old}},3500)}
+$('#kasaForm').addEventListener('submit',async evt=>{evt.preventDefault();if(!needRw())return;
+  const desc=$('#kDesc').value.trim(),amt=pnum($('#kAmount').value);const inc=S.kmode==='income';
+  if(!desc){toast(inc?'Gelirin açıklamasını yazın':'Masrafın açıklamasını yazın');$('#kDesc').focus();return}
+  if(!(amt>0)){toast('Tutarı girin');$('#kAmount').focus();return}
+  const btn=$('#kSave');btn.disabled=true;
+  const ok=await wr(()=>S.db.collection('events/'+S.eid+'/ledger').doc().set({kind:inc?'income':'expense',desc,amount:amt,by:($('#devName').value||'').trim(),day:today(),at:Date.now()}),
+    `${desc}: ${inc?'+':'−'}${money(amt)} kaydedildi`);
+  btn.disabled=false;if(ok){$('#kDesc').value='';$('#kAmount').value=''}
+});
+$('#kasaList').addEventListener('click',e=>{const b=e.target.closest('[data-del-led]');if(!b||!needRw())return;
+  confirmTap(b,'Emin misiniz?',()=>wr(()=>S.db.doc('events/'+S.eid+'/ledger/'+b.dataset.delLed).delete(),'Kayıt silindi'))});
 $('#recent').addEventListener('click',e=>{const b=e.target.closest('[data-del-sale]');if(!b||!needRw())return;
   confirmTap(b,'Emin misiniz?',()=>wr(()=>S.db.doc('events/'+S.eid+'/sales/'+b.dataset.delSale).delete(),'Kayıt silindi'))});
 
@@ -1017,7 +1122,22 @@ async function reportPDF(spec){
       ctx.fillStyle=INK;ctx.font=`${r.type==='row'?400:700} ${3.1*MM}px Figtree`;
       r.vals.forEach((v,i)=>cell(i,v));
       ctx.textAlign='left';ctx.strokeStyle=RULE;ctx.lineWidth=0.15*MM;ctx.beginPath();ctx.moveTo(L,y+RH);ctx.lineTo(R,y+RH);ctx.stroke();y+=RH}}
-  if(spec.foot){y+=5*MM;ctx.fillStyle=GREY;ctx.font=`400 ${2.9*MM}px Figtree`;ctx.fillText(spec.foot,L,y)}
+  if(spec.foot){y+=5*MM;ctx.fillStyle=GREY;ctx.font=`400 ${2.9*MM}px Figtree`;ctx.fillText(spec.foot,L,y);y+=2*MM}
+  for(const t of spec.more||[]){
+    if(y+RH*3+12*MM>PH-40*MM)page();
+    y+=8*MM;ctx.fillStyle=INK;ctx.font=`700 ${3.6*MM}px Figtree`;ctx.textAlign='left';ctx.fillText(t.title,L,y);y+=3*MM;
+    const tcols=t.cols;const ttw=tcols.reduce((s2,x)=>s2+x.w,0)*MM,tsc=(R-L)/ttw;const tcx=[];let ac=L;tcols.forEach(c=>{tcx.push(ac);ac+=c.w*MM*tsc});
+    const tcell=(i,txt)=>{const w=tcols[i].w*MM*tsc;if(tcols[i].r){ctx.textAlign='right';ctx.fillText(txt,tcx[i]+w-2.2*MM,y+5.3*MM)}else{ctx.textAlign='left';ctx.save();ctx.beginPath();ctx.rect(tcx[i],y,w-1*MM,RH);ctx.clip();ctx.fillText(txt,tcx[i]+2.2*MM,y+5.3*MM);ctx.restore()}};
+    const thead=()=>{ctx.fillStyle=NAVY;ctx.fillRect(L,y,R-L,RH);ctx.fillStyle='#fff';ctx.font=`700 ${2.9*MM}px Figtree`;tcols.forEach((c,i)=>tcell(i,c.t));ctx.textAlign='left';y+=RH};
+    if(!t.rows.length){y+=4*MM;ctx.fillStyle=GREY;ctx.font=`400 ${3*MM}px Figtree`;ctx.fillText(t.empty||'Kayıt yok.',L,y+2*MM);y+=6*MM;continue}
+    thead();
+    for(const r of t.rows){if(y+RH>PH-40*MM){page();thead()}
+      if(r.type==='sub'){ctx.fillStyle='#E6E8F7';ctx.fillRect(L,y,R-L,RH)}
+      if(r.type==='tot'){ctx.fillStyle=INK;ctx.fillRect(L,y,R-L,0.5*MM)}
+      ctx.fillStyle=INK;ctx.font=`${r.type==='row'?400:700} ${3.1*MM}px Figtree`;
+      r.vals.forEach((v,i)=>{if(r.color&&r.color[i])ctx.fillStyle=r.color[i];else ctx.fillStyle=INK;tcell(i,v)});
+      ctx.textAlign='left';ctx.strokeStyle=RULE;ctx.lineWidth=0.15*MM;ctx.beginPath();ctx.moveTo(L,y+RH);ctx.lineTo(R,y+RH);ctx.stroke();y+=RH}
+  }
   if(y+36*MM>PH-14*MM)page();
   const sy=Math.max(y+22*MM,PH-46*MM);const sw=(R-L)/3;
   ['Teslim Eden','Teslim Alan','Okul Müdürü'].forEach((t,i)=>{const sx=L+i*sw+sw/2;ctx.textAlign='center';
@@ -1027,23 +1147,28 @@ async function reportPDF(spec){
   return pages;
 }
 $('#rPdf').addEventListener('click',e=>{const x=ev();if(!x){toast('Etkinlik seçin');return}
-  busy(e.currentTarget,'Hazırlanıyor…',async()=>{const d=$('#rDay').value;const a=agg(S.sales,x,d);
+  busy(e.currentTarget,'Hazırlanıyor…',async()=>{const d=$('#rDay').value;const a=agg(S.sales,x,d);const LG=lagg(S.ledger,a,d);
+    const RED='#B3261E',GRN='#1D7448';
+    const lrows=[...LG.out.map(z=>({...z,k:'out'})),...LG.inc.map(z=>({...z,k:'inc'}))].sort((p,q)=>(p.at||0)-(q.at||0))
+      .map(z=>({type:'row',vals:[fmtD(z.day),z.desc,z.k==='out'?'Masraf':'Sonradan gelen ücret',(z.k==='out'?'−':'+')+money(z.amount)],color:[null,null,null,z.k==='out'?RED:GRN]}));
+    if(lrows.length)lrows.push({type:'sub',vals:['','Sonradan gelen ücret toplamı','','+'+money(LG.income)]},{type:'sub',vals:['','Masraf toplamı','','−'+money(LG.expense)]},{type:'tot',vals:['','OKUL BAKİYESİ (okul payı + sonradan gelen − masraf)','',money(LG.balance)]});
     const rows=eventRows(a,x).map(r=>({type:r.type,vals:[r.name,int(r.paid),int(r.free),money(r.amount),money(r.firm),money(r.school)]}));
     const empty=(x.classes||[]).filter(c=>!a.by[c.id]).length;
     const pages=await reportPDF({title:x.name,subtitle:`Etkinlik Mali Raporu · Etkinlik tarihi ${fmtD(x.date)}${d!=='all'?' · Kayıt günü '+fmtD(d):''}${x.status==='archived'?' · Arşiv':''}`,
-      boxes:[['Toplanan ücret',money(a.collected)],['Ücretli öğrenci',int(a.paid)],['Kontenjan (ücretsiz)',int(a.free),'free'],['Firma payı',money(a.firm)],['Okul payı',money(a.school)],['Toplam katılım',int(a.total)]],
+      boxes:[['Toplanan ücret',money(a.collected)],['Ücretli öğrenci',int(a.paid)],['Kontenjan (ücretsiz)',int(a.free),'free'],['Firma payı',money(a.firm)],['Okul payı',money(a.school)],['Toplam katılım',int(a.total)],['Sonradan gelen ücret','+'+money(LG.income)],['Masraf','−'+money(LG.expense)],['Okul bakiyesi',money(LG.balance)]],
+      more:[{title:'Masraf ve sonradan gelen ücretler',cols:[{t:'Tarih',w:24},{t:'Açıklama',w:86},{t:'Tür',w:40},{t:'Tutar',w:32,r:1}],rows:lrows,empty:'Bu dönemde masraf ya da sonradan gelen ücret kaydı yok.'}],
       note:`Ücret ${money(x.price)} · Öğrenci başına firma ${money(x.firmPer)}, okul ${money(x.schoolPer)} · Beklenen ${money(a.expected)} · Fark ${money(a.collected-a.expected)} · Kontenjan ücrete ve paylara yansımaz.`,
       cols:[{t:'Sınıf',w:46},{t:'Ücretli',w:22,r:1},{t:'Kontenjan',w:24,r:1},{t:'Toplanan',w:32,r:1},{t:'Firma payı',w:31,r:1},{t:'Okul payı',w:31,r:1}],
       rows,foot:empty?`Kaydı olmayan ${empty} sınıf tabloya alınmamıştır.`:''});
     await savePdf(`rapor-${slug(x.name)}-${d==='all'?(x.date||today()):d}.pdf`,pages)})});
 $('#yPdf').addEventListener('click',e=>{const sy=$('#yYear').value;if(!sy)return;
   busy(e.currentTarget,'Hazırlanıyor…',async()=>{const {rows,tot}=await yearData(sy);
-    const vrows=rows.map(r=>({type:'row',vals:[fmtD(r.date),r.name+(r.archived?' (arşiv)':''),int(r.paid),int(r.free),money(r.amount),money(r.firm),money(r.school)]}));
-    if(rows.length)vrows.push({type:'tot',vals:['','YIL TOPLAMI',int(tot.paid),int(tot.free),money(tot.amount),money(tot.firm),money(tot.school)]});
+    const vrows=rows.map(r=>({type:'row',vals:[fmtD(r.date),r.name+(r.archived?' (arşiv)':''),int(r.paid),int(r.free),money(r.amount),money(r.firm),money(r.school),money(r.income),r.expense?'−'+money(r.expense):money(0),money(r.balance)]}));
+    if(rows.length)vrows.push({type:'tot',vals:['','YIL TOPLAMI',int(tot.paid),int(tot.free),money(tot.amount),money(tot.firm),money(tot.school),money(tot.income),tot.expense?'−'+money(tot.expense):money(0),money(tot.balance)]});
     const pages=await reportPDF({title:`${sy} Yıllık Etkinlik Raporu`,subtitle:`Eylül–Ağustos dönemi · ${rows.length} etkinlik`,
-      boxes:[['Toplanan ücret',money(tot.amount)],['Ücretli öğrenci',int(tot.paid)],['Kontenjan (ücretsiz)',int(tot.free),'free'],['Firma payı',money(tot.firm)],['Okul payı',money(tot.school)],['Etkinlik sayısı',int(rows.length)]],
-      note:'Kontenjan öğrencileri ücrete ve paylara yansımaz.',
-      cols:[{t:'Tarih',w:22},{t:'Etkinlik',w:52},{t:'Ücretli',w:17,r:1},{t:'Kont.',w:15,r:1},{t:'Toplanan',w:28,r:1},{t:'Firma',w:26,r:1},{t:'Okul',w:26,r:1}],rows:vrows});
+      boxes:[['Toplanan ücret',money(tot.amount)],['Ücretli öğrenci',int(tot.paid)],['Kontenjan (ücretsiz)',int(tot.free),'free'],['Firma payı',money(tot.firm)],['Okul payı',money(tot.school)],['Etkinlik sayısı',int(rows.length)],['Sonradan gelen ücret','+'+money(tot.income)],['Masraf','−'+money(tot.expense)],['Okul bakiyesi',money(tot.balance)]],
+      note:'Kontenjan öğrencileri ücrete ve paylara yansımaz. Okul bakiyesi = okul payı + sonradan gelen ücret − masraf.',
+      cols:[{t:'Tarih',w:19},{t:'Etkinlik',w:40},{t:'Ücretli',w:15,r:1},{t:'Kont.',w:12,r:1},{t:'Toplanan',w:21,r:1},{t:'Firma',w:20,r:1},{t:'Okul',w:20,r:1},{t:'S. gelen',w:19,r:1},{t:'Masraf',w:19,r:1},{t:'Bakiye',w:21,r:1}],rows:vrows});
     await savePdf(`yillik-rapor-${sy}.pdf`,pages)})});
 
 /* ---------- boot ---------- */
@@ -1054,8 +1179,10 @@ function selectEvent(id,announce){
   if(S.eid===id&&S.unsubSales)return;
   S.eid=id;ls.set('ul_eid',id||'');evDirty=false;
   if(S.unsubSales){S.unsubSales();S.unsubSales=null}
-  S.sales=[];S.salesLoaded=false;renderAll();
+  if(S.unsubLedger){S.unsubLedger();S.unsubLedger=null}
+  S.sales=[];S.salesLoaded=false;S.ledger=[];S.ledgerLoaded=false;renderAll();
   if(!id||!S.db)return;
+  S.unsubLedger=S.db.collection('events/'+id+'/ledger').limit(1000).onSnapshot(q=>{S.ledger=q.docs.map(d=>({id:d.id,...d.data()}));S.ledgerLoaded=true;S.lcache[id]=S.ledger;renderAll()},()=>{});
   S.unsubSales=S.db.collection('events/'+id+'/sales').limit(1000).onSnapshot(q=>{S.sales=q.docs.map(d=>({id:d.id,...d.data()}));S.salesLoaded=true;S.cache[id]=S.sales;renderAll()},
     ()=>{setSync(false,'Bağlantı koptu');banner('Canlı bağlantı kesildi. Sayfayı yenileyin.')});
   if(announce){const e=ev();if(e)toast(`${e.name} açıldı`);setTab('giris')}
@@ -1083,7 +1210,7 @@ else{
   });
 }
 function showLogin(){$('#login').hidden=false;setSync(false,'Giriş yok');setTimeout(()=>{try{$('#pin1').focus()}catch(e){}},100)}
-function stopData(){unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];if(S.unsubSales){S.unsubSales();S.unsubSales=null}S.db=null}
+function stopData(){unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];if(S.unsubSales){S.unsubSales();S.unsubSales=null}if(S.unsubLedger){S.unsubLedger();S.unsubLedger=null}S.db=null}
 let setupMode=false;
 $('#setupToggle').onclick=()=>{setupMode=!setupMode;$('#pin2').hidden=!setupMode;$('#loginErr').textContent='';
   $('#loginSub').textContent=setupMode?'İlk kurulum: tüm telefonlarda kullanılacak en az 6 haneli PIN belirleyin.':'Devam etmek için PIN kodunu girin.';
