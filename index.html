@@ -180,6 +180,9 @@ details.sub-card[open] summary{margin-bottom:12px}
 .login-box .lnk{background:none;border:0;color:var(--hdr-muted);font:inherit;font-size:13.5px;text-decoration:underline;cursor:pointer;padding:6px}
 .install-card{display:flex;gap:12px;align-items:center}
 .install-promo{border-color:var(--accent);background:var(--accent-soft)}
+.new-ev-card{border-color:var(--accent)}
+.new-ev-sum{color:var(--accent);font-size:16px}
+.edit-warn{background:var(--bad-soft);color:var(--bad)}
 .up-banner{display:flex;gap:12px;align-items:center;text-align:left;font:inherit;color:var(--ink);cursor:pointer;width:100%}
 .up-banner.soon{border-color:var(--brass);background:var(--brass-soft)}
 .up-date{flex:none;width:52px;text-align:center;border-radius:10px;background:var(--accent-soft);color:var(--accent);padding:6px 0;line-height:1.1}
@@ -378,9 +381,32 @@ details.sub-card[open] summary{margin-bottom:12px}
       <button class="btn ghost block" type="button" id="icsBtn" style="margin-top:12px">Telefon takvimine ekle</button>
       <p class="hint" style="margin-top:8px">Takvime eklenen her etkinlik, tanıtım gününden bir gün önce saat 09:00'da telefonunuza hatırlatma gönderir.</p>
     </div>
+    <div class="card new-ev-card">
+      <details class="sub-card" id="newEvDetails">
+        <summary class="new-ev-sum">＋ Yeni etkinlik ekle</summary>
+        <form class="stack" id="newEvForm" autocomplete="off">
+          <label class="f">Etkinlik adı<input id="nName" type="text" placeholder="Örn. Planetaryum Gezisi" required></label>
+          <div class="row">
+            <label class="f">Tanıtım tarihi<input id="nPromo" type="date"></label>
+            <label class="f">Etkinlik tarihi<input id="nDate" type="date" required></label>
+          </div>
+          <label class="f">Etkinlik ücreti (öğrenci başı ₺)<input id="nPrice" type="text" inputmode="decimal" placeholder="Örn. 150"></label>
+          <div class="row">
+            <label class="f">Firma payı (₺)<input id="nFirm" type="text" inputmode="decimal"></label>
+            <label class="f">Okul payı (₺)<input id="nSchool" type="text" inputmode="decimal"></label>
+          </div>
+          <label class="f">Firma yetkilisi<input id="nContact" type="text"></label>
+          <label class="f">Not<input id="nNote" type="text"></label>
+          <p class="hint">Sınıflar okulun şube listesinden kopyalanır. Yeni etkinlik bu telefonda hemen açılır.</p>
+          <button class="btn block" type="submit">Etkinliği oluştur</button>
+        </form>
+      </details>
+    </div>
     <form class="card" id="evForm" autocomplete="off">
-      <h2>Seçili etkinlik</h2>
+      <details class="sub-card" id="evEditDetails">
+      <summary><span>Açık etkinliği düzenle: <span id="evEditName" style="color:var(--accent)"></span></span></summary>
       <div class="stack">
+        <div class="free-note edit-warn">Bu form yeni etkinlik oluşturmaz; açık etkinliğin bilgilerini değiştirir. Yeni etkinlik için yukarıdaki "Yeni etkinlik ekle"yi kullanın.</div>
         <label class="f">Etkinlik adı<input id="eName" type="text"></label>
         <div class="row">
           <label class="f">Tanıtım tarihi<input id="ePromo" type="date"></label>
@@ -400,28 +426,8 @@ details.sub-card[open] summary{margin-bottom:12px}
           <button class="btn warn" type="button" id="eDelete">Etkinliği sil</button>
         </div>
       </div>
-    </form>
-    <div class="card">
-      <details class="sub-card" id="newEvDetails">
-        <summary>Yeni etkinlik ekle</summary>
-        <form class="stack" id="newEvForm" autocomplete="off">
-          <label class="f">Etkinlik adı<input id="nName" type="text" placeholder="Örn. Planetaryum Gezisi" required></label>
-          <div class="row">
-            <label class="f">Tanıtım tarihi<input id="nPromo" type="date"></label>
-            <label class="f">Etkinlik tarihi<input id="nDate" type="date" required></label>
-          </div>
-          <label class="f">Etkinlik ücreti (öğrenci başı ₺)<input id="nPrice" type="text" inputmode="decimal" placeholder="Örn. 150"></label>
-          <div class="row">
-            <label class="f">Firma payı (₺)<input id="nFirm" type="text" inputmode="decimal"></label>
-            <label class="f">Okul payı (₺)<input id="nSchool" type="text" inputmode="decimal"></label>
-          </div>
-          <label class="f">Firma yetkilisi<input id="nContact" type="text"></label>
-          <label class="f">Not<input id="nNote" type="text"></label>
-          <p class="hint">Sınıflar okulun şube listesinden kopyalanır. Yeni etkinlik bu telefonda hemen açılır.</p>
-          <button class="btn block" type="submit">Etkinliği oluştur</button>
-        </form>
       </details>
-    </div>
+    </form>
     <div class="card"><div class="grade-h"><h3>Etkinlikler</h3><span id="evCount"></span></div><div id="evList"></div></div>
   </section>
 
@@ -782,7 +788,7 @@ $('#yYear').addEventListener('change',renderYear);
 
 /* ---------- events tab ---------- */
 let evDirty=false;
-function fillEv(){const e=ev();const f=['#eName','#eDate','#ePromo','#ePrice','#eFirm','#eSchool','#eContact','#eNote'];
+function fillEv(){const e=ev();$('#evEditName').textContent=e?e.name:'—';const f=['#eName','#eDate','#ePromo','#ePrice','#eFirm','#eSchool','#eContact','#eNote'];
   if(!e){f.forEach(id=>{$(id).value='';$(id).disabled=true});['#eSave','#eArchive','#eDelete'].forEach(id=>$(id).disabled=true);$('#eHint').textContent='Henüz etkinlik yok. Aşağıdan yeni etkinlik ekleyin.';return}
   const r=e.status==='archived';
   if(!evDirty){$('#eName').value=e.name||'';$('#eDate').value=e.date||'';$('#ePrice').value=e.price||'';$('#eFirm').value=e.firmPer||'';$('#eSchool').value=e.schoolPer||'';$('#ePromo').value=e.promoDate||'';$('#eContact').value=e.contact||'';$('#eNote').value=e.note||''}
@@ -864,6 +870,27 @@ $('#icsBtn').addEventListener('click',()=>{if(!upcoming().length){toast('Yaklaş
   saveBlob('ulugbey-etkinlikleri.ics',new Blob([icsText()],{type:'text/calendar;charset=utf-8'}),'text/calendar','Takvim dosyası indirildi. Açıp "Tümünü ekle" deyin.')});
 
 /* tek seferlik: defterdeki 2026-2027 etkinlik planı */
+const REPAIR_V=1;
+async function repairOverwrite(db){
+  try{const m=await db.doc('cfg/main').get({source:'server'});if(!m.exists||(m.data().repairV||0)>=REPAIR_V)return;
+    const uRef=db.doc('events/ev-uzay-cadiri-2026');const u=await uRef.get({source:'server'});
+    if(!u.exists||u.data().name==='Uzay Çadırı Etkinliği'){await db.doc('cfg/main').set({repairV:REPAIR_V},{merge:true});return}
+    const d=u.data();const wrongDay=d.date;if(!wrongDay||wrongDay<='2026-10-07'){await db.doc('cfg/main').set({repairV:REPAIR_V},{merge:true});return}
+    const newId='ev-'+(slug(d.name)||'etkinlik')+'-'+wrongDay;const nRef=db.doc('events/'+newId);
+    const sales=(await db.collection('events/ev-uzay-cadiri-2026/sales').get({source:'server'})).docs.filter(x=>(x.data().day||'')>=wrongDay);
+    const led=(await db.collection('events/ev-uzay-cadiri-2026/ledger').get({source:'server'})).docs.filter(x=>(x.data().day||'')>=wrongDay);
+    const b=db.batch();
+    b.set(nRef,{name:d.name,date:wrongDay,promoDate:d.promoDate||'',price:+d.price||0,firmPer:+d.firmPer||0,schoolPer:+d.schoolPer||0,contact:'',note:d.note||'',status:'active',createdAt:Date.now(),classes:(d.classes||[]).map(c=>({...c}))},{merge:true});
+    for(const x of sales){b.set(db.doc('events/'+newId+'/sales/'+x.id),x.data());b.delete(db.doc('events/ev-uzay-cadiri-2026/sales/'+x.id))}
+    for(const x of led){b.set(db.doc('events/'+newId+'/ledger/'+x.id),x.data());b.delete(db.doc('events/ev-uzay-cadiri-2026/ledger/'+x.id))}
+    b.update(uRef,{name:'Uzay Çadırı Etkinliği',date:'2026-10-07',promoDate:'2026-10-05',price:120,firmPer:60,schoolPer:60,contact:'Ebubekir'});
+    b.set(db.doc('cfg/main'),{repairV:REPAIR_V},{merge:true});
+    await b.commit();
+    S.cache={};S.lcache={};ls.set('ul_eid',newId);pendingSelect=newId;
+    if(S.events.some(e=>e.id===newId))selectEvent(newId,false);
+    toast(`"${d.name}" ayrı etkinlik olarak açıldı; Uzay Çadırı kayıtları eski yerine döndü`);
+  }catch(e){console.warn('repair',e)}
+}
 const PLANNED_V=1;
 const PLAN=[
   {id:'ev-hologram-2026',name:'Hologram',promoDate:'2026-11-26',date:'2026-11-27',price:120,firmPer:60,schoolPer:60},
@@ -959,6 +986,12 @@ $('#pruneBtn').addEventListener('click',e=>{if(!needRw())return;const a=agg(S.sa
 
 $('#evForm').addEventListener('submit',async evt=>{evt.preventDefault();if(!needRw())return;
   const name=$('#eName').value.trim();if(!name){toast('Etkinlik adı boş olamaz');return}
+  const cur=ev(),btn=$('#eSave');const changed=cur&&(name!==cur.name||($('#eDate').value||'')!==(cur.date||''));
+  const n=S.sales.length+S.ledger.length;
+  if(changed&&n&&!btn.dataset.armed){btn.dataset.armed='1';btn.textContent=`Bu etkinlikte ${n} kayıt var — yine de değiştir`;btn.className='btn bad block';
+    toast(`"${cur.name}" etkinliğinin ${n} kaydı yeni ad ve tarihe taşınır. Yeni etkinlik için "Yeni etkinlik ekle"yi kullanın.`);
+    setTimeout(()=>{if(btn.dataset.armed){delete btn.dataset.armed;btn.textContent='Etkinliği kaydet';btn.className='btn block'}},6000);return}
+  delete btn.dataset.armed;btn.textContent='Etkinliği kaydet';btn.className='btn block';
   if(await wr(()=>S.db.doc('events/'+S.eid).update({name,date:$('#eDate').value||today(),price:pnum($('#ePrice').value),firmPer:pnum($('#eFirm').value),schoolPer:pnum($('#eSchool').value),promoDate:$('#ePromo').value||'',contact:$('#eContact').value.trim(),note:$('#eNote').value.trim()}),'Etkinlik kaydedildi'))evDirty=false});
 $('#eArchive').addEventListener('click',e=>{if(!needDb())return;const x=ev();if(!x)return;const arc=x.status==='archived';
   confirmTap(e.currentTarget,arc?'Arşivden çıkarılsın mı?':'Arşive alınsın mı?',()=>wr(()=>S.db.doc('events/'+x.id).update({status:arc?'active':'archived',archivedAt:arc?null:Date.now()}),arc?'Etkinlik arşivden çıkarıldı':'Etkinlik arşive alındı'))});
@@ -1251,7 +1284,7 @@ function startData(){
     const id=pickDefault();if(id!==S.eid||!S.unsubSales)selectEvent(id,false);else renderAll();
     if(pendingSelect&&id===pendingSelect)pendingSelect=null;
     if(S.tab==='etk')loadEventTotals()},err));
-  seedIfEmpty(db).then(()=>migrateClasses(db)).then(()=>migratePlan(db));
+  seedIfEmpty(db).then(()=>migrateClasses(db)).then(()=>migratePlan(db)).then(()=>repairOverwrite(db));
 }
 // Tek seferlik: şube listesini okulun gerçek listesine çeker. Girişi olan sınıflara dokunmaz.
 async function migrateClasses(db){
