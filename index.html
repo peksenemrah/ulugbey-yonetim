@@ -846,9 +846,10 @@ function renderUpcoming(){
     :'<div class="empty"><b>Yaklaşan etkinlik yok</b>Aşağıdan yeni etkinlik eklediğinizde burada görünür.</div>';
   // Giriş banner: nearest upcoming that is not the open event
   const nx=list.find(e=>e.id!==S.eid);const b=$('#upBanner');
-  if(!nx){b.hidden=true;return}
+  // yalnızca tanıtıma 7 gün ve daha az kaldığında hatırlat
+  if(!nx||daysTo(remDate(nx))>7){b.hidden=true;return}
   const soon=daysTo(remDate(nx))<=3;b.className='card up-banner'+(soon?' soon':'');
-  b.innerHTML=`${dateBox(remDate(nx))}<div style="min-width:0;flex:1"><div class="hint" style="font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:11.5px">Sıradaki etkinlik · ${leftText(nx)}</div><b>${esc(nx.name)}</b><div class="hint">${nx.promoDate?'Tanıtım '+fmtD(nx.promoDate)+' · ':''}Etkinlik ${fmtD(nx.date)}</div></div>`;
+  b.innerHTML=`${dateBox(remDate(nx))}<div style="min-width:0;flex:1"><div class="hint" style="font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:11.5px">Hatırlatma · ${leftText(nx)}</div><b>${esc(nx.name)}</b><div class="hint">${nx.promoDate?'Tanıtım '+fmtD(nx.promoDate)+' · ':''}Etkinlik ${fmtD(nx.date)}</div></div>`;
   b.hidden=false;
 }
 $('#upBanner').addEventListener('click',()=>setTab('etk'));
