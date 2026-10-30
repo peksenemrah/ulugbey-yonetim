@@ -931,6 +931,11 @@ $('#saleForm').addEventListener('submit',async evt=>{evt.preventDefault();if(!ne
   const cid=$('#sClass').value,n=parseInt($('#sCount').value)||0;
   if(!cid){toast('Sınıf seçin');return} if(n<1){toast('Öğrenci sayısını girin');return}
   const free=S.entry==='free';
+  const sb=$('#sSave');const far=e.date&&Math.abs(daysTo(e.date))>1;
+  if(far&&!sb.dataset.armed){sb.dataset.armed='1';const old=sb.textContent;sb.textContent=`${e.name} (${fmtD(e.date)}) etkinliğine kaydet`;
+    toast(`Dikkat: açık etkinlik "${e.name}", tarihi ${fmtD(e.date)}. Doğru etkinlikse tekrar basın, değilse üstteki etkinlik adına dokunup değiştirin.`);
+    setTimeout(()=>{if(sb.dataset.armed){delete sb.dataset.armed;sb.textContent=old}},6000);return}
+  if(sb.dataset.armed){delete sb.dataset.armed;sb.textContent=free?'Kontenjanı kaydet':'Kaydet'}
   const amt=free?0:($('#sAmount').value.trim()?pnum($('#sAmount').value):n*(+e.price||0));
   const cl=(e.classes||[]).find(c=>c.id===cid);
   const btn=$('#sSave');btn.disabled=true;
@@ -1219,10 +1224,14 @@ function selectEvent(id,announce){
   S.unsubLedger=S.db.collection('events/'+id+'/ledger').limit(1000).onSnapshot(q=>{S.ledger=q.docs.map(d=>({id:d.id,...d.data()}));S.ledgerLoaded=true;S.lcache[id]=S.ledger;renderAll()},()=>{});
   S.unsubSales=S.db.collection('events/'+id+'/sales').limit(1000).onSnapshot(q=>{S.sales=q.docs.map(d=>({id:d.id,...d.data()}));S.salesLoaded=true;S.cache[id]=S.sales;renderAll()},
     ()=>{setSync(false,'Bağlantı koptu');banner('Canlı bağlantı kesildi. Sayfayı yenileyin.')});
-  if(announce){const e=ev();if(e)toast(`${e.name} açıldı`);setTab('giris')}
+  if(announce){S.manualPick=true;const e=ev();if(e)toast(`${e.name} açıldı`);setTab('giris')}
 }
 function pickDefault(){
-  const want=pendingSelect||ls.get('ul_eid');
+  if(pendingSelect&&S.events.some(e=>e.id===pendingSelect))return pendingSelect;
+  // bugün tarihli açık bir etkinlik varsa uygulama onunla açılır (bu oturumda elle başka etkinlik seçilmediyse)
+  if(!S.manualPick){const td=S.events.filter(e=>e.status!=='archived'&&e.date===today());if(td.length===1)return td[0].id;
+    if(td.length>1){const keep=td.find(e=>e.id===ls.get('ul_eid'));return (keep||td[0]).id}}
+  const want=ls.get('ul_eid');
   if(want&&S.events.some(e=>e.id===want))return want;
   const open=S.events.filter(e=>e.status!=='archived').sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   const from=addDays(today(),-3);const next=open.find(e=>(e.date||'')>=from);if(next)return next.id;
